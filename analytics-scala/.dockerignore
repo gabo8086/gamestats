@@ -1,0 +1,11 @@
+# Lo que no hace falta dentro del contexto de build.
+target/
+project/target/
+project/project/
+src/test/
+.bsp/
+.metals/
+.bloop/
+Dockerfile
+.dockerignore
+README.md
