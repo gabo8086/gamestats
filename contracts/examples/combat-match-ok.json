@@ -1,0 +1,139 @@
+{
+  "matchId": "m-combat-001",
+  "gameId": "combat",
+  "gameVersion": "1.0",
+  "events": [
+    {
+      "eventId": "e-100001",
+      "timestamp": "2026-10-05T15:00:00.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": null,
+      "type": "MATCH_STARTED",
+      "action": null,
+      "data": { "mode": "deathmatch", "arena": "Bodega" }
+    },
+    {
+      "eventId": "e-100002",
+      "timestamp": "2026-10-05T15:00:01.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-100003",
+      "timestamp": "2026-10-05T15:00:01.200Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p2",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-100004",
+      "timestamp": "2026-10-05T15:00:01.400Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p3",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-100005",
+      "timestamp": "2026-10-05T15:00:01.600Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p4",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-100006",
+      "timestamp": "2026-10-05T15:00:30.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p3", "weapon": "rifle", "damage": 120 }
+    },
+    {
+      "eventId": "e-100007",
+      "timestamp": "2026-10-05T15:01:00.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p2",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p4", "weapon": "shotgun", "damage": 95 }
+    },
+    {
+      "eventId": "e-100008",
+      "timestamp": "2026-10-05T15:01:04.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p2",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p3", "weapon": "shotgun", "damage": 110 }
+    },
+    {
+      "eventId": "e-100009",
+      "timestamp": "2026-10-05T15:01:08.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p2",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p4", "weapon": "rifle", "damage": 130 }
+    },
+    {
+      "eventId": "e-100010",
+      "timestamp": "2026-10-05T15:01:40.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p3",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p2", "weapon": "pistol", "damage": 80 }
+    },
+    {
+      "eventId": "e-100011",
+      "timestamp": "2026-10-05T15:02:00.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p4", "weapon": "rifle", "damage": 100 }
+    },
+    {
+      "eventId": "e-100012",
+      "timestamp": "2026-10-05T15:02:10.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-001",
+      "playerId": null,
+      "type": "MATCH_FINISHED",
+      "action": null,
+      "data": null
+    }
+  ]
+}

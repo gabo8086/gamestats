@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestats.local/contracts/batch.schema.json",
+  "title": "GameStats match batch",
+  "description": "Cuerpo del POST /analyze que Go envia a Scala cuando una partida termina. Contiene todos los eventos validos de una sola partida.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["matchId", "gameId", "gameVersion", "events"],
+  "properties": {
+    "matchId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Partida del lote. Todos los eventos comparten este matchId."
+    },
+    "gameId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Juego de la partida. Scala elige el analizador con este campo sin recorrer los eventos."
+    },
+    "gameVersion": { "type": "string", "minLength": 1 },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Eventos de la partida ordenados por 'timestamp' ascendente. El orden es parte del contrato: Scala lo asume y no reordena.",
+      "items": { "$ref": "https://gamestats.local/contracts/event.schema.json" }
+    }
+  }
+}
