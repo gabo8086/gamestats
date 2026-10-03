@@ -1,0 +1,29 @@
+# Go
+/ingest-go/ingest
+/ingest-go/ingest.exe
+*.test
+*.out
+
+# Scala / sbt
+target/
+project/target/
+project/project/
+.bsp/
+.bloop/
+.metals/
+.scala-build/
+
+# Editores
+.idea/
+.vscode/
+*.iml
+
+# Python (solo para contracts/validate.py)
+__pycache__/
+.venv/
+venv/
+
+# Sistema
+desktop.ini
+Thumbs.db
+.DS_Store

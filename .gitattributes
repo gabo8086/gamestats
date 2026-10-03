@@ -1,0 +1,10 @@
+# Normaliza los finales de linea: LF en el repo, siempre.
+# Hace falta porque trabajamos en Windows y los archivos terminan dentro de contenedores Linux,
+# donde un CRLF en un script o en un Dockerfile rompe la ejecucion.
+* text=auto eol=lf
+
+# Binarios: que git no los toque.
+*.docx binary
+*.jar  binary
+*.png  binary
+*.pdf  binary
