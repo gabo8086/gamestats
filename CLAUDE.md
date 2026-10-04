@@ -127,7 +127,8 @@ Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el rep
 | 6 | Casos límite en Go | Ver "Casos límite" abajo y `contracts/rejections.md` | S | ⬜ |
 | 7 | Formato y endpoints de resultados | `GET /results/matches/{id}` y `GET /results/players/{id}`; forma exacta en `contracts/results.md` | G | ⬜ |
 | 8 | Puertos | Go `8080`, Scala `8081` | S | ⬜ |
-| 9 | Versiones y bibliotecas | Go 1.24, solo biblioteca estándar. Scala 3.3.8 (LTS), sbt 1.13.0, MUnit 1.3.6, Java 21. HTTP y JSON de Scala **sin decidir**: candidatos y propuesta en `analytics-scala/README.md` | A | ⬜ |
+| 9a | Versiones y bibliotecas de Go | Go 1.24, solo biblioteca estándar | S | ⬜ |
+| 9b | Versiones y bibliotecas de Scala | Scala 3.3.8 (LTS), sbt 1.13.0, Java 21, MUnit 1.3.6, **cask 0.11.3** (HTTP) y **upickle 4.4.3** (JSON). Justificación y alternativas descartadas en `analytics-scala/README.md` | G | ✅ |
 | 10 | Repo, CI y deployment | GitHub, GitHub Actions, GHCR; entorno de deployment por elegir | S | ⬜ |
 | 11 | Reparto y ritmo | Tabla de "Reparto de trabajo" y cronograma de 4 días | A | ⬜ |
 

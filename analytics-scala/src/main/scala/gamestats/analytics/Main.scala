@@ -1,42 +1,53 @@
 package gamestats.analytics
 
-import com.sun.net.httpserver.{HttpExchange, HttpServer}
-import java.net.InetSocketAddress
-import java.nio.charset.StandardCharsets
+import upickle.default.{ReadWriter, write}
+
+/** Respuesta de `/health`.
+  *
+  * Es una case class y no un string a mano para que upickle derive el codec: el mismo mecanismo
+  * que van a usar el lote de entrada y los resultados. `derives ReadWriter` genera la conversion
+  * a JSON en tiempo de compilacion, asi que un campo que se renombre rompe la compilacion en vez
+  * de producir un JSON equivocado en ejecucion.
+  */
+final case class Health(status: String, service: String) derives ReadWriter
 
 /** Modulo de analisis de GameStats (paradigma funcional).
   *
-  * Estado: esqueleto de la Fase 0. Solo responde /health, lo justo para que docker compose y el CI
-  * tengan algo que verificar. Lo que falta, en orden (ver CLAUDE.md):
+  * Estado: esqueleto. Solo responde /health, lo justo para que docker compose y el CI tengan algo
+  * que verificar. Lo que falta, en orden (ver CLAUDE.md):
   *
   *   - Dia 1: case classes inmutables del evento y del lote (event.schema.json, batch.schema.json).
   *   - Dia 2: `trait GameAnalyzer` con `RacingAnalyzer` y `CombatAnalyzer`; estadisticas y reglas con
   *     filter / map / groupBy / fold.
   *   - Dia 3: POST /analyze y los GET /results/... con el formato de contracts/results.md.
   *
-  * El servidor usa `com.sun.net.httpserver`, que viene en el JDK, para no fijar todavia la
-  * biblioteca de HTTP: esa decision es de Samuel (decision 9 de la Fase 0). Cuando se decida,
-  * se reemplaza este archivo sin tocar el resto del modulo, porque el analisis no sabe de HTTP.
+  * Este archivo es el borde HTTP del modulo y el unico que sabe que cask existe. El analisis que
+  * viene despues son funciones puras sobre colecciones inmutables y no importa nada de aqui.
   */
-object Main:
+object Main extends cask.MainRoutes:
 
-  def main(args: Array[String]): Unit =
-    val config = Config.fromSystemEnv()
-    val server = HttpServer.create(new InetSocketAddress(config.port), 0)
+  private val config = Config.fromSystemEnv()
 
-    server.createContext("/health", exchange => responder(exchange, 200, HealthJson))
-    server.setExecutor(null) // un executor por defecto alcanza para el esqueleto
-    server.start()
+  override def port: Int = config.port
 
-    println(s"analytics-scala escuchando en :${config.port}")
+  /** cask escucha en `localhost` por defecto. Dentro de un contenedor eso solo acepta conexiones
+    * del propio contenedor, de modo que el servicio de Go no podria alcanzarnos y el healthcheck
+    * de docker compose fallaria. `0.0.0.0` escucha en todas las interfaces.
+    */
+  override def host: String = "0.0.0.0"
 
-  private val HealthJson =
-    """{"status":"ok","service":"analytics-scala"}"""
+  @cask.get("/health")
+  def health(): cask.Response[String] =
+    json(Health(status = "ok", service = "analytics-scala"))
 
-  private def responder(exchange: HttpExchange, status: Int, cuerpo: String): Unit =
-    val bytes = cuerpo.getBytes(StandardCharsets.UTF_8)
-    exchange.getResponseHeaders.add("Content-Type", "application/json")
-    exchange.sendResponseHeaders(status, bytes.length.toLong)
-    val salida = exchange.getResponseBody
-    try salida.write(bytes)
-    finally salida.close()
+  /** Serializa cualquier case class con codec derivado y le pone el Content-Type. Todas las
+    * respuestas del modulo salen por aqui para no repetir la cabecera en cada endpoint.
+    */
+  private def json[A: ReadWriter](cuerpo: A, status: Int = 200): cask.Response[String] =
+    cask.Response(
+      write(cuerpo),
+      statusCode = status,
+      headers = Seq("Content-Type" -> "application/json")
+    )
+
+  initialize()
