@@ -16,10 +16,11 @@ final case class Health(status: String, service: String) derives ReadWriter
   * Estado: esqueleto. Solo responde /health, lo justo para que docker compose y el CI tengan algo
   * que verificar. Lo que falta, en orden (ver CLAUDE.md):
   *
-  *   - Dia 1: case classes inmutables del evento y del lote (event.schema.json, batch.schema.json).
+  *   - Dia 1: hecho. El modelo inmutable esta en Event.scala y Batch.scala.
   *   - Dia 2: `trait GameAnalyzer` con `RacingAnalyzer` y `CombatAnalyzer`; estadisticas y reglas con
   *     filter / map / groupBy / fold.
-  *   - Dia 3: POST /analyze y los GET /results/... con el formato de contracts/results.md.
+  *   - Dia 3: POST /analyze (ya puede usar Batch.parse) y los GET /results/... con el formato de
+  *     contracts/results.md.
   *
   * Este archivo es el borde HTTP del modulo y el unico que sabe que cask existe. El analisis que
   * viene despues son funciones puras sobre colecciones inmutables y no importa nada de aqui.

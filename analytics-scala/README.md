@@ -20,9 +20,36 @@ sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 | Archivo | Qué es |
 |---|---|
 | `src/main/scala/gamestats/analytics/Config.scala` | configuración leída del entorno, con `fromEnv` pura |
+| `src/main/scala/gamestats/analytics/Event.scala` | el sobre del evento y los tipos generales (`EventType`) |
+| `src/main/scala/gamestats/analytics/Batch.scala` | el lote de una partida, con `parse` y las agrupaciones base |
+| `src/main/scala/gamestats/analytics/Json.scala` | decodificación a `Either`, el único sitio que atrapa excepciones |
 | `src/main/scala/gamestats/analytics/Main.scala` | servidor cask con `/health` y la case class `Health` |
 | `src/test/scala/gamestats/analytics/ConfigSuite.scala` | pruebas de `Config` |
 | `src/test/scala/gamestats/analytics/HealthSuite.scala` | pruebas del codec derivado por upickle |
+| `src/test/scala/gamestats/analytics/BatchSuite.scala` | el modelo contra los ejemplos reales de `contracts/` |
+
+### El modelo (Día 1)
+
+`Event` es el espejo de `event.schema.json` y `Batch` el de `batch.schema.json`. Tres cosas que vale
+la pena saber antes de tocarlos:
+
+- **`type` → `eventType`.** `type` es palabra reservada en Scala; `@upickle.implicits.key("type")`
+  lo mapea al nombre del contrato, que es el que viaja por el cable.
+- **`data` es `ujson.Value`**, JSON sin interpretar, igual que el `json.RawMessage` de Go. Los
+  accesores `str` / `int` / `long` / `num` devuelven `Option`, así que un campo ausente da `None` en
+  vez de lanzar. `data: null` tampoco rompe nada.
+- **`eventType` es `String`, no un `enum`.** Un `enum` cerrado obligaría a tocar el núcleo cada vez
+  que un juego nuevo trae un tipo nuevo, que es justo lo que el enunciado §12 pide evitar. Los tipos
+  generales están en `EventType`; los de cada juego viven en su analizador.
+
+`Batch.parse` devuelve `Either[String, Batch]` y comprueba dos cosas que el esquema no puede
+expresar: que el lote traiga al menos un evento y que ninguno sea de otra partida. Go ya valida cada
+evento, pero esas dos romperían el análisis más adelante de forma confusa, y verificarlas en el borde
+cuesta cuatro líneas.
+
+`BatchSuite` lee los JSON de `contracts/examples/` en vez de copiarlos a `src/test/resources`: el
+contrato tiene una sola fuente de verdad. Si alguien cambia el esquema sin actualizar el modelo, esas
+pruebas se caen, que es lo que queremos que pase.
 
 `Config.fromEnv` recibe la función de lectura como parámetro en vez de llamar a `sys.env` por
 dentro. Es el patrón de todo el módulo: el cálculo es puro y el IO (HTTP, JSON, entorno) queda en los
