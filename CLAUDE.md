@@ -17,9 +17,11 @@ No agregues frameworks, capas, patrones ni dependencias que no hagan falta. Ante
 
 | Persona | Responsable de | Carpetas |
 |---|---|---|
-| **Gabriel** | Módulo Go, Docker, docker-compose, CI/CD, deployment | `ingest-go/`, `docker-compose.yml`, `.github/` |
-| **Samuel** | Módulo Scala, simulador y datos de prueba | `analytics-scala/`, `simulator/` |
+| **Gabriel** | Módulo Scala, simulador, datos de prueba y pruebas | `analytics-scala/`, `simulator/` |
+| **Samuel** | Módulo Go, Docker, docker-compose, CI/CD, deployment | `ingest-go/`, `docker-compose.yml`, `.github/` |
 | **Ambos** | Contrato, documentación, integración y demo | `contracts/`, `docs/` |
+
+Los roles se intercambiaron el 3 de octubre de 2026, a pedido de Samuel: antes Gabriel llevaba Go y Samuel Scala. El andamiaje de `ingest-go/` que entra en el PR de la Fase 0 lo escribió Gabriel **antes** del intercambio; a partir del merge ese módulo es de Samuel.
 
 Cada quien trabaja en sus carpetas para evitar conflictos de merge. Cambios en `contracts/` requieren aprobación de ambos.
 Claude Code: si te piden algo fuera de las carpetas de quien te habla, avisa antes de tocarlo.
@@ -107,29 +109,29 @@ Simula al sistema de juegos externo. Debe generar: varias partidas, varios jugad
 
 Gabriel prepara la Fase 0 con Claude Code y la entrega a Samuel como **un único PR** (contratos, ejemplos, módulos vacíos, CI y esta tabla). **Samuel lo revisa y lo aprueba antes de que empiece el Día 1.** Nadie programa módulos hasta que ese PR esté mergeado, porque todo lo demás depende de estas decisiones.
 
-En esta fase Claude Code **ayuda a redactar y a señalar huecos o contradicciones, pero no decide por ellos**: las decisiones las toma Gabriel, y las que afectan el módulo Scala o el simulador (bibliotecas de Scala, formato de resultados, definiciones de reglas) quedan marcadas como **pendientes de revisión de Samuel**.
+En esta fase Claude Code **ayuda a redactar y a señalar huecos o contradicciones, pero no decide por ellos**. El andamiaje lo redactó Gabriel; con el intercambio de roles, las decisiones que afectan al módulo Go, a Docker o al CI (cuándo se envía una partida, casos límite, puertos, deployment) quedan **pendientes de revisión de Samuel**, y las del contrato las aprueban los dos.
 
-Lo propuesto en este archivo es el punto de partida. Marcar cada decisión como ✅ cuando Samuel la haya aprobado en el PR.
+Lo propuesto en este archivo es el punto de partida. Marcar cada decisión como ✅ cuando quien corresponda la haya aprobado en el PR.
 
 ### Decisiones a cerrar
 
-Leyenda de "Aprueba": **S** = necesita el visto bueno de Samuel porque le toca su módulo o el simulador; **G** = es de Gabriel (Go, Docker, CI, deployment), Samuel solo se da por enterado.
+Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el reparto; **G** = la decide Gabriel (Scala, análisis, simulador, pruebas); **S** = la decide Samuel (Go, Docker, CI, deployment). Quien no decide se da por enterado.
 
 | # | Decisión | Propuesta por defecto | Aprueba | Estado |
 |---|---|---|---|---|
-| 1 | Juegos | Carreras + combate | S | ⬜ |
-| 2 | Tipos de evento y campos de `data` por juego | Los de las secciones de arriba, ya escritos en `contracts/event.schema.json` y en los ejemplos | S | ⬜ |
-| 3 | Definición exacta de cada estadística y regla | Ver "Definiciones precisas" abajo | S | ⬜ |
-| 4 | Comunicación Go→Scala | HTTP/JSON: Go hace `POST /analyze` a Scala con el lote de una partida (`contracts/batch.schema.json`) | S | ⬜ |
-| 5 | Cuándo envía Go una partida | Al recibir `MATCH_FINISHED`, con los eventos ordenados por `timestamp` | G | ⬜ |
-| 6 | Casos límite en Go | Ver "Casos límite" abajo y `contracts/rejections.md` | G | ⬜ |
-| 7 | Formato y endpoints de resultados | `GET /results/matches/{id}` y `GET /results/players/{id}`; forma exacta en `contracts/results.md` | S | ⬜ |
-| 8 | Puertos | Go `8080`, Scala `8081` | G | ⬜ |
-| 9 | Versiones y bibliotecas | Go 1.24, solo biblioteca estándar. Scala 3.3.8 (LTS), sbt 1.13.0, MUnit 1.3.6, Java 21. HTTP y JSON de Scala **sin decidir**: candidatos y propuesta en `analytics-scala/README.md` | S | ⬜ |
-| 10 | Repo, CI y deployment | GitHub, GitHub Actions, GHCR; entorno de deployment por elegir | G | ⬜ |
-| 11 | Reparto y ritmo | Tabla de "Reparto de trabajo" y cronograma de 4 días | S | ⬜ |
+| 1 | Juegos | Carreras + combate | A | ⬜ |
+| 2 | Tipos de evento y campos de `data` por juego | Los de las secciones de arriba, ya escritos en `contracts/event.schema.json` y en los ejemplos | A | ⬜ |
+| 3 | Definición exacta de cada estadística y regla | Ver "Definiciones precisas" abajo | G | ⬜ |
+| 4 | Comunicación Go→Scala | HTTP/JSON: Go hace `POST /analyze` a Scala con el lote de una partida (`contracts/batch.schema.json`) | A | ⬜ |
+| 5 | Cuándo envía Go una partida | Al recibir `MATCH_FINISHED`, con los eventos ordenados por `timestamp` | S | ⬜ |
+| 6 | Casos límite en Go | Ver "Casos límite" abajo y `contracts/rejections.md` | S | ⬜ |
+| 7 | Formato y endpoints de resultados | `GET /results/matches/{id}` y `GET /results/players/{id}`; forma exacta en `contracts/results.md` | G | ⬜ |
+| 8 | Puertos | Go `8080`, Scala `8081` | S | ⬜ |
+| 9 | Versiones y bibliotecas | Go 1.24, solo biblioteca estándar. Scala 3.3.8 (LTS), sbt 1.13.0, MUnit 1.3.6, Java 21. HTTP y JSON de Scala **sin decidir**: candidatos y propuesta en `analytics-scala/README.md` | A | ⬜ |
+| 10 | Repo, CI y deployment | GitHub, GitHub Actions, GHCR; entorno de deployment por elegir | S | ⬜ |
+| 11 | Reparto y ritmo | Tabla de "Reparto de trabajo" y cronograma de 4 días | A | ⬜ |
 
-Dos cosas quedaron decididas al armar el andamiaje y conviene que Samuel las vea explícitamente:
+Dos cosas quedaron decididas al armar el andamiaje y conviene dejarlas explícitas. Con el reparto nuevo las dos caen del lado de Gabriel:
 
 - **El sobre del evento es cerrado** (`additionalProperties: false`, y `DisallowUnknownFields` en Go). Un campo de más se rechaza con `unknown_field` en vez de ignorarse. Afecta al simulador: no puede mandar campos extra "por si acaso".
 - **`sbt-assembly`** está en `analytics-scala/project/plugins.sbt`. Es solo para producir el jar de la imagen de Docker; no condiciona la biblioteca de HTTP ni la de JSON.
