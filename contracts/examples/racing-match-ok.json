@@ -1,0 +1,172 @@
+{
+  "matchId": "m-racing-001",
+  "gameId": "racing",
+  "gameVersion": "1.0",
+  "events": [
+    {
+      "eventId": "e-000001",
+      "timestamp": "2026-10-05T14:00:00.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": null,
+      "type": "MATCH_STARTED",
+      "action": null,
+      "data": { "laps": 3, "track": "Circuito Volcan" }
+    },
+    {
+      "eventId": "e-000002",
+      "timestamp": "2026-10-05T14:00:01.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-000003",
+      "timestamp": "2026-10-05T14:00:01.200Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p2",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-000004",
+      "timestamp": "2026-10-05T14:00:01.400Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p3",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "e-000005",
+      "timestamp": "2026-10-05T14:01:25.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p1",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+    },
+    {
+      "eventId": "e-000006",
+      "timestamp": "2026-10-05T14:01:26.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p2",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 1, "lapTimeMs": 81000, "position": 2 }
+    },
+    {
+      "eventId": "e-000007",
+      "timestamp": "2026-10-05T14:01:30.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p3",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 1, "lapTimeMs": 85000, "position": 3 }
+    },
+    {
+      "eventId": "e-000008",
+      "timestamp": "2026-10-05T14:02:46.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p3",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 2, "lapTimeMs": 76000, "position": 1 }
+    },
+    {
+      "eventId": "e-000009",
+      "timestamp": "2026-10-05T14:02:48.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p2",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 2, "lapTimeMs": 82000, "position": 2 }
+    },
+    {
+      "eventId": "e-000010",
+      "timestamp": "2026-10-05T14:02:50.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p2",
+      "type": "PENALTY",
+      "action": null,
+      "data": { "seconds": 6, "reason": "track_cut" }
+    },
+    {
+      "eventId": "e-000011",
+      "timestamp": "2026-10-05T14:02:51.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p1",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 2, "lapTimeMs": 86000, "position": 3 }
+    },
+    {
+      "eventId": "e-000012",
+      "timestamp": "2026-10-05T14:04:03.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p3",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 3, "lapTimeMs": 77000, "position": 1 }
+    },
+    {
+      "eventId": "e-000013",
+      "timestamp": "2026-10-05T14:04:11.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p2",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 3, "lapTimeMs": 83000, "position": 2 }
+    },
+    {
+      "eventId": "e-000014",
+      "timestamp": "2026-10-05T14:04:15.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": "p1",
+      "type": "LAP_COMPLETED",
+      "action": null,
+      "data": { "lap": 3, "lapTimeMs": 84000, "position": 3 }
+    },
+    {
+      "eventId": "e-000015",
+      "timestamp": "2026-10-05T14:04:20.000Z",
+      "gameId": "racing",
+      "gameVersion": "1.0",
+      "matchId": "m-racing-001",
+      "playerId": null,
+      "type": "MATCH_FINISHED",
+      "action": null,
+      "data": null
+    }
+  ]
+}

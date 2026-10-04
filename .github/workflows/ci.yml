@@ -1,0 +1,119 @@
+# CI de GameStats: en cada PR compila y prueba los dos modulos, valida el contrato y construye
+# las imagenes. El deployment (publicar en GHCR y desplegar) se agrega en la Fase 3.
+#
+# Los cuatro jobs corren en paralelo porque son independientes: ninguno necesita el resultado del
+# otro, y asi un error de Go no esconde un error de Scala.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Si se empuja dos veces seguidas al mismo PR, cancela la corrida vieja.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Contrato
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Instalar jsonschema
+        run: pip install jsonschema
+
+      # Comprueba que los ejemplos cumplen los esquemas y las reglas que JSON Schema no expresa
+      # (eventId unico, orden por timestamp, un caso por cada razon de rechazo).
+      - name: Validar ejemplos contra los esquemas
+        run: python contracts/validate.py
+
+  go:
+    name: Go (ingest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ingest-go
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.24"
+          # El modulo no tiene dependencias externas, asi que no hay go.sum ni nada que cachear.
+          cache: false
+
+      # gofmt no falla por si solo: hay que comparar su salida.
+      - name: Formato
+        run: |
+          sin_formato=$(gofmt -l .)
+          if [ -n "$sin_formato" ]; then
+            echo "Archivos sin gofmt:"; echo "$sin_formato"; exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test -race ./...
+
+      - name: go build
+        run: go build ./...
+
+  scala:
+    name: Scala (analytics)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-scala
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: sbt
+
+      - uses: sbt/setup-sbt@v1
+
+      - name: sbt test
+        run: sbt -batch test
+
+      - name: sbt assembly
+        run: sbt -batch assembly
+
+  docker:
+    name: Imagenes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construir las imagenes
+        run: docker compose build
+
+      # Prueba de humo: los dos servicios arrancan y responden /health.
+      - name: Levantar y verificar /health
+        run: |
+          docker compose up -d --wait
+          curl -fsS http://localhost:8080/health
+          curl -fsS http://localhost:8081/health
+
+      # TODO (Fase 3): prueba de integracion de verdad -- enviar contracts/examples/racing-match-ok.json
+      # a POST /events y comprobar el JSON de GET /results/matches/m-racing-001.
+
+      - name: Logs si algo fallo
+        if: failure()
+        run: docker compose logs
+
+      - name: Bajar todo
+        if: always()
+        run: docker compose down -v

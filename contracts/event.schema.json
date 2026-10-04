@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestats.local/contracts/event.schema.json",
+  "title": "GameStats event envelope",
+  "description": "Sobre comun de todo evento de GameStats. Lo especifico de cada juego vive en 'data' y el nucleo (Go) no lo interpreta.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventId", "timestamp", "gameId", "gameVersion", "matchId", "type"],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Identificador unico del evento. La unicidad es global y se verifica en Go (no es expresable en JSON Schema)."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+      "description": "Instante en que ocurrio el evento, en RFC 3339. Se usa para ordenar el lote antes de enviarlo a Scala."
+    },
+    "gameId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Juego que produjo el evento. Scala elige el analizador segun este campo. Valores en uso: 'racing', 'combat'.",
+      "examples": ["racing", "combat"]
+    },
+    "gameVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version del juego. Permite que el formato de 'data' evolucione sin romper eventos viejos.",
+      "examples": ["1.0"]
+    },
+    "matchId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Partida a la que pertenece el evento. Es la llave de agrupacion en Go."
+    },
+    "playerId": {
+      "type": ["string", "null"],
+      "description": "Jugador asociado. Obligatorio salvo en eventos MATCH_*, donde puede ser null u omitirse."
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tipo general del evento. Generales: MATCH_STARTED, PLAYER_JOINED, MATCH_FINISHED. De racing: LAP_COMPLETED, PENALTY. De combat: PLAYER_ELIMINATED."
+    },
+    "action": {
+      "type": ["string", "null"],
+      "description": "Accion especifica dentro del tipo, cuando haga falta. Hoy ningun juego la usa; se mantiene por el enunciado y para extender sin cambiar el sobre."
+    },
+    "data": {
+      "type": ["object", "null"],
+      "description": "Informacion especifica del juego. Go la trata como JSON opaco (json.RawMessage); solo Scala la interpreta."
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "playerId es obligatorio y no vacio salvo en eventos MATCH_*.",
+      "if": {
+        "required": ["type"],
+        "properties": { "type": { "pattern": "^MATCH_" } }
+      },
+      "then": true,
+      "else": {
+        "required": ["playerId"],
+        "properties": { "playerId": { "type": "string", "minLength": 1 } }
+      }
+    }
+  ]
+}

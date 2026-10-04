@@ -1,0 +1,187 @@
+{
+  "$comment": "Un caso por cada razon de rechazo de contracts/rejections.md. 'validAgainstSchema' dice si el evento es estructuralmente valido: los casos con true solo se pueden detectar con el estado de la partida que mantiene Go, no con el esquema. 'precedingEvents' son los eventos que Go debe haber procesado antes para que el rechazo ocurra.",
+  "cases": [
+    {
+      "expectedReason": "missing_required_field",
+      "note": "falta gameVersion",
+      "validAgainstSchema": false,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900001",
+        "timestamp": "2026-10-05T16:00:00.000Z",
+        "gameId": "racing",
+        "matchId": "m-invalid-001",
+        "playerId": null,
+        "type": "MATCH_STARTED",
+        "action": null,
+        "data": { "laps": 3, "track": "Circuito Volcan" }
+      }
+    },
+    {
+      "expectedReason": "missing_required_field",
+      "note": "matchId presente pero vacio",
+      "validAgainstSchema": false,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900002",
+        "timestamp": "2026-10-05T16:00:01.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "",
+        "playerId": null,
+        "type": "MATCH_STARTED",
+        "action": null,
+        "data": null
+      }
+    },
+    {
+      "expectedReason": "invalid_timestamp",
+      "note": "el timestamp no es RFC 3339",
+      "validAgainstSchema": false,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900003",
+        "timestamp": "05/10/2026 16:00",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-003",
+        "playerId": null,
+        "type": "MATCH_STARTED",
+        "action": null,
+        "data": null
+      }
+    },
+    {
+      "expectedReason": "missing_player_id",
+      "note": "LAP_COMPLETED no es un evento MATCH_*, asi que playerId es obligatorio",
+      "validAgainstSchema": false,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900004",
+        "timestamp": "2026-10-05T16:00:04.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-004",
+        "playerId": null,
+        "type": "LAP_COMPLETED",
+        "action": null,
+        "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+      }
+    },
+    {
+      "expectedReason": "unknown_field",
+      "note": "'score' no existe en el sobre; lo especifico del juego va dentro de data",
+      "validAgainstSchema": false,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900005",
+        "timestamp": "2026-10-05T16:00:05.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-005",
+        "playerId": "p1",
+        "type": "LAP_COMPLETED",
+        "action": null,
+        "score": 42,
+        "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+      }
+    },
+    {
+      "expectedReason": "duplicate_event",
+      "note": "el eventId e-900006 ya habia sido aceptado en esta misma partida",
+      "validAgainstSchema": true,
+      "precedingEvents": [
+        {
+          "eventId": "e-900006-start",
+          "timestamp": "2026-10-05T16:00:06.000Z",
+          "gameId": "racing",
+          "gameVersion": "1.0",
+          "matchId": "m-invalid-006",
+          "playerId": null,
+          "type": "MATCH_STARTED",
+          "action": null,
+          "data": { "laps": 3, "track": "Circuito Volcan" }
+        },
+        {
+          "eventId": "e-900006",
+          "timestamp": "2026-10-05T16:00:07.000Z",
+          "gameId": "racing",
+          "gameVersion": "1.0",
+          "matchId": "m-invalid-006",
+          "playerId": "p1",
+          "type": "LAP_COMPLETED",
+          "action": null,
+          "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+        }
+      ],
+      "event": {
+        "eventId": "e-900006",
+        "timestamp": "2026-10-05T16:00:07.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-006",
+        "playerId": "p1",
+        "type": "LAP_COMPLETED",
+        "action": null,
+        "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+      }
+    },
+    {
+      "expectedReason": "match_not_started",
+      "note": "llega un LAP_COMPLETED de una partida que nunca envio MATCH_STARTED",
+      "validAgainstSchema": true,
+      "precedingEvents": [],
+      "event": {
+        "eventId": "e-900007",
+        "timestamp": "2026-10-05T16:00:08.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-007",
+        "playerId": "p1",
+        "type": "LAP_COMPLETED",
+        "action": null,
+        "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+      }
+    },
+    {
+      "expectedReason": "match_already_finished",
+      "note": "llega un evento despues del MATCH_FINISHED de esa partida",
+      "validAgainstSchema": true,
+      "precedingEvents": [
+        {
+          "eventId": "e-900008-start",
+          "timestamp": "2026-10-05T16:00:09.000Z",
+          "gameId": "racing",
+          "gameVersion": "1.0",
+          "matchId": "m-invalid-008",
+          "playerId": null,
+          "type": "MATCH_STARTED",
+          "action": null,
+          "data": { "laps": 3, "track": "Circuito Volcan" }
+        },
+        {
+          "eventId": "e-900008-end",
+          "timestamp": "2026-10-05T16:00:10.000Z",
+          "gameId": "racing",
+          "gameVersion": "1.0",
+          "matchId": "m-invalid-008",
+          "playerId": null,
+          "type": "MATCH_FINISHED",
+          "action": null,
+          "data": null
+        }
+      ],
+      "event": {
+        "eventId": "e-900008",
+        "timestamp": "2026-10-05T16:00:11.000Z",
+        "gameId": "racing",
+        "gameVersion": "1.0",
+        "matchId": "m-invalid-008",
+        "playerId": "p1",
+        "type": "LAP_COMPLETED",
+        "action": null,
+        "data": { "lap": 1, "lapTimeMs": 80000, "position": 1 }
+      }
+    }
+  ]
+}
