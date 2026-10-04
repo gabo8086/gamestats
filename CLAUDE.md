@@ -180,7 +180,7 @@ docs/enunciado.md
 CLAUDE.md                  # este archivo con la tabla de decisiones en ✅
 ```
 
-Además: `main` protegida (PR obligatorio, CI en verde, una aprobación) y cada quien con acceso de escritura al repo.
+Además: `main` protegida (PR obligatorio, los cuatro checks del CI en verde, sin force push) y cada quien con acceso de escritura al repo.
 
 ### Definición de "Fase 0 terminada"
 
@@ -194,7 +194,7 @@ Además: `main` protegida (PR obligatorio, CI en verde, una aprobación) y cada 
 - `main` está protegida: nada de push directo. Todo cambio entra por **PR** desde una rama (`feat/...`, `fix/...`, `docs/...`).
 - Un PR = un cambio pequeño y revisable. Commits en español o inglés, claros y en imperativo.
 - Antes de abrir el PR: `git fetch && git merge origin/main` en tu rama, luego `docker compose up --build` y la prueba de humo, para validar el resultado de la mezcla.
-- El PR requiere CI en verde y la revisión del otro integrante.
+- El PR requiere los cuatro checks del CI en verde. **La aprobación del otro no es obligatoria para mergear**: la regla de rama no la exige, para que ninguno quede bloqueado esperando al otro. Pedir revisión sigue siendo lo normal, y es obligatoria de hecho para cambios en `contracts/`, porque ahí el acuerdo entre los dos es el punto.
 
 ## Docker y CI/CD
 
