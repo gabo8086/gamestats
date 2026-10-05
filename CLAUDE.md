@@ -121,11 +121,11 @@ Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el rep
 |---|---|---|---|---|
 | 1 | Juegos | Carreras + combate | A | ⬜ |
 | 2 | Tipos de evento y campos de `data` por juego | Los de las secciones de arriba, ya escritos en `contracts/event.schema.json` y en los ejemplos | A | ⬜ |
-| 3 | Definición exacta de cada estadística y regla | Ver "Definiciones precisas" abajo | G | ⬜ |
+| 3 | Definición exacta de cada estadística y regla | Ver "Definiciones precisas" abajo | G | ✅ |
 | 4 | Comunicación Go→Scala | HTTP/JSON: Go hace `POST /analyze` a Scala con el lote de una partida (`contracts/batch.schema.json`) | A | ⬜ |
 | 5 | Cuándo envía Go una partida | Al recibir `MATCH_FINISHED`, con los eventos ordenados por `timestamp` | S | ⬜ |
 | 6 | Casos límite en Go | Ver "Casos límite" abajo y `contracts/rejections.md` | S | ⬜ |
-| 7 | Formato y endpoints de resultados | `GET /results/matches/{id}` y `GET /results/players/{id}`; forma exacta en `contracts/results.md` | G | ⬜ |
+| 7 | Formato y endpoints de resultados | `GET /results/matches/{id}` y `GET /results/players/{id}`; forma exacta en `contracts/results.md` | G | ✅ |
 | 8 | Puertos | Go `8080`, Scala `8081` | S | ⬜ |
 | 9a | Versiones y bibliotecas de Go | Go 1.24, solo biblioteca estándar | S | ⬜ |
 | 9b | Versiones y bibliotecas de Scala | Scala 3.3.8 (LTS), sbt 1.13.0, Java 21, MUnit 1.3.6, **cask 0.11.3** (HTTP) y **upickle 4.4.3** (JSON). Justificación y alternativas descartadas en `analytics-scala/README.md` | G | ✅ |
