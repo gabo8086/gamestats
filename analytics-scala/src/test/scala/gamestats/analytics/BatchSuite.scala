@@ -88,6 +88,17 @@ class BatchSuite extends munit.FunSuite:
   test("un JSON roto devuelve Left y no lanza"):
     assert(Batch.parse("{esto no es json").isLeft)
 
+  test("el error de un JSON roto dice donde esta el problema"):
+    // upickle envuelve el error real y el getMessage de afuera es solo "$"; en un 400 eso no sirve.
+    val error = Batch.parse("esto no es json").swap.getOrElse(fail("deberia fallar"))
+    assert(error.contains("posicion"), s"el mensaje no dice donde fallo: '$error'")
+    assert(error.length > 10, s"mensaje demasiado pelado: '$error'")
+
+  test("el error de un campo faltante nombra el campo"):
+    val error = Batch.parse("""{"matchId":"m-1"}""").swap.getOrElse(fail("deberia fallar"))
+    assert(error.contains("gameId"), s"el mensaje no nombra el campo que falta: '$error'")
+    assert(!error.contains("-1"), s"posicion desconocida impresa como -1: '$error'")
+
   test("un lote sin eventos se rechaza"):
     val vacio = """{"matchId":"m-1","gameId":"racing","gameVersion":"1.0","events":[]}"""
     assertEquals(Batch.parse(vacio), Left("el lote no trae eventos"))
