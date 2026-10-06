@@ -42,11 +42,11 @@ figuraban como si las aprobaras solo vos. Eso estaba mal en las dos direcciones.
 | `contracts/` | completo: esquemas, ejemplos, catálogo de rechazos y validador en CI |
 | `analytics-scala/` | **completo de punta a punta**: modelo, analizadores, reglas y endpoints. 47 pruebas |
 | `ingest-go/` | esqueleto: valida el sobre del evento y responde `/health`. **Tuyo** |
-| `simulator/` | solo el README con lo que tiene que generar. Mío |
+| `simulator/` | **completo**: genera el flujo, dispara todas las reglas, 19 pruebas. Mío |
 | Docker + compose + CI | funcionando, los cuatro checks en verde. **Tuyos** |
 
-Lo que falta para la demo: tu módulo de Go completo (ingestión, estado por partida, goroutines, el
-`POST /analyze` hacia mí) y mi simulador.
+Lo que falta para la demo es **solo tu módulo de Go**: ingestión, estado por partida, goroutines y
+el `POST /analyze` hacia mí. Todo lo demás del reparto está.
 
 ---
 
@@ -247,6 +247,14 @@ Te las digo yo para que no las descubras vos:
    `results.md` muestra `"avgLapMs": 82000.0` la salida real dice `82000`. Es el mismo número en
    JSON y ningún parser lo nota. Lo digo por si lo ves y te parece una diferencia.
 
+5. **El `Dockerfile` del simulador está sin verificar.** Lo escribí pero no pude construirlo porque
+   Docker no estaba levantado en ese momento, y el CI tampoco lo construye: el servicio
+   `simulator` sigue comentado en `docker-compose.yml`, que es tuyo. **Hay que descomentarlo** —
+   está preparado para funcionar sin argumentos, toma `INGEST_URL` del entorno.
+
+6. **El CI no corre las pruebas del simulador.** Son `python -m unittest` desde `simulator/`, 19
+   pruebas, menos de un segundo. `.github/` es tuyo, así que te lo dejo apuntado en vez de tocarlo.
+
 ---
 
 ## 8. Lo que necesito de vos
@@ -287,6 +295,20 @@ curl http://localhost:8081/results/players/p2
 
 Si tu Go manda exactamente eso, ya está integrado.
 
+### Un bug que vale la pena contar
+
+Al mandarle al analizador las partidas generadas por el simulador aparecieron "rachas" de **una**
+eliminación. La causa: en Scala `List(a).sliding(3)` devuelve igual un grupo de un elemento —
+`sliding` no exige que la ventana esté completa — así que cualquier jugador con una o dos
+eliminaciones producía una racha falsa. Mis pruebas no lo veían porque buscaban la racha con `find`
+y la correcta aparecía primero.
+
+Ya está corregido, con una prueba que falla sin la corrección. Lo cuento porque es el argumento
+concreto a favor de generar datos variados: los ejemplos del contrato tienen pocos jugadores y no
+destapaban el caso. Si en tu módulo tenés lógica de ventanas o secuencias, vale la pena pasarle el
+simulador.
+
 ### Lo que sigue de mi lado
 
-El simulador. Después de eso, la demo depende de que tu módulo esté.
+Nada del reparto. Quedo disponible para la integración, la demo y el documento final de
+justificación de paradigmas, que es de los dos.
