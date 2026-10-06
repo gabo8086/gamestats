@@ -136,6 +136,13 @@ class AnalyzerSuite extends munit.FunSuite:
     assertEquals(venganza.detail("eliminatedByEventId").str, "e-100008")
     assertEquals(venganza.detail("revengeEventId").str, "e-100010")
 
+  test("combat: solo hay una racha, la de p2"):
+    // Regresion: sliding(3) no exige la ventana completa, asi que los jugadores con una o dos
+    // eliminaciones producian una "racha" de una eliminacion y 0 ms. p1 tiene 2 bajas y p3 una.
+    val rachas = analizar("combat-match-ok.json").patterns.filter(_.rule == "streak")
+    assertEquals(rachas.map(_.playerId), List("p2"))
+    assert(rachas.forall(_.detail("eliminations").num == 3.0), "una racha con menos de 3 bajas")
+
   test("combat: la venganza se reporta una sola vez por par"):
     val r = analizar("combat-match-ok.json")
     assertEquals(r.patterns.count(_.rule == "revenge"), 1)

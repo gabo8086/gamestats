@@ -131,6 +131,10 @@ object CombatAnalyzer extends GameAnalyzer:
     * `sliding(3)` recorre las eliminaciones del jugador de tres en tres consecutivas. Se reporta
     * solo la primera racha de cada jugador: con cuatro eliminaciones rapidas habria dos ventanas
     * solapadas describiendo el mismo episodio.
+    *
+    * El `sizeIs == EliminacionesRacha` no sobra: `sliding` **no exige que la ventana este completa**,
+    * asi que `List(a).sliding(3)` devuelve igual un grupo de un elemento. Sin esa guarda, cualquiera
+    * con una o dos eliminaciones producia una "racha" de una eliminacion y ventana de 0 ms.
     */
   private def racha(luchador: Luchador): Option[Pattern] =
     val muertesMs = luchador.muertes.flatMap(ms)
@@ -138,7 +142,8 @@ object CombatAnalyzer extends GameAnalyzer:
     luchador.eliminaciones
       .sliding(EliminacionesRacha)
       .collectFirst {
-        case tramo @ primera :: _ if dentroDeVentana(tramo) && !murioEn(tramo, muertesMs) =>
+        case tramo @ primera :: _
+            if tramo.sizeIs == EliminacionesRacha && dentroDeVentana(tramo) && !murioEn(tramo, muertesMs) =>
           val desde = ms(primera).getOrElse(0L)
           val hasta = ms(tramo.last).getOrElse(0L)
           Pattern(
