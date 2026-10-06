@@ -247,10 +247,10 @@ Te las digo yo para que no las descubras vos:
    `results.md` muestra `"avgLapMs": 82000.0` la salida real dice `82000`. Es el mismo número en
    JSON y ningún parser lo nota. Lo digo por si lo ves y te parece una diferencia.
 
-5. **El `Dockerfile` del simulador está sin verificar.** Lo escribí pero no pude construirlo porque
-   Docker no estaba levantado en ese momento, y el CI tampoco lo construye: el servicio
-   `simulator` sigue comentado en `docker-compose.yml`, que es tuyo. **Hay que descomentarlo** —
-   está preparado para funcionar sin argumentos, toma `INGEST_URL` del entorno.
+5. **El servicio `simulator` sigue comentado en `docker-compose.yml`, que es tuyo.** La imagen ya
+   está verificada: construye, corre sin privilegios, y desde la red de compose alcanza a
+   `analytics` por nombre de servicio y le analiza los nueve lotes. Toma `INGEST_URL` del entorno,
+   así que **descomentar el bloque debería bastar**.
 
 6. **El CI no corre las pruebas del simulador.** Son `python -m unittest` desde `simulator/`, 19
    pruebas, menos de un segundo. `.github/` es tuyo, así que te lo dejo apuntado en vez de tocarlo.
