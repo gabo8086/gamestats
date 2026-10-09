@@ -13,6 +13,12 @@ razones de esta tabla. El código de razón es parte del contrato: el simulador 
 | `duplicate_event` | `eventId` ya aceptado antes | estado de Go |
 | `match_not_started` | Primer evento de un `matchId` que no es `MATCH_STARTED` | estado de Go |
 | `match_already_finished` | Evento de un `matchId` que ya recibió `MATCH_FINISHED` | estado de Go |
+| `reconnect_without_disconnect` | `PLAYER_RECONNECTED` de un jugador que no estaba desconectado | estado de Go |
+
+`reconnect_without_disconnect` entra con los eventos de desconexión (decisión 15). Es la única razón **opcional** de
+la tabla: sin ella una reconexión huérfana simplemente no cuenta para nada, pero rechazarla evita que las
+estadísticas de desconexión queden descuadradas sin que nadie se entere. Si Samuel prefiere no llevar ese estado en
+Go, se quita de aquí y del ejemplo.
 
 Las razones de la columna "esquema" se pueden comprobar con `contracts/event.schema.json` sobre el evento aislado.
 Las de "estado de Go" necesitan el historial de la partida, por eso `contracts/examples/invalid-events.json` marca cada

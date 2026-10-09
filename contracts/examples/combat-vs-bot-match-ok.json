@@ -1,0 +1,161 @@
+{
+  "matchId": "m-combat-002",
+  "gameId": "combat",
+  "gameVersion": "1.0",
+  "events": [
+    {
+      "eventId": "cb-000001",
+      "timestamp": "2026-10-09T20:00:00.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": null,
+      "type": "MATCH_STARTED",
+      "action": null,
+      "data": { "matchMode": "PVE", "mode": "deathmatch", "arena": "Bodega" }
+    },
+    {
+      "eventId": "cb-000002",
+      "timestamp": "2026-10-09T20:00:01.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "HUMAN" }
+    },
+    {
+      "eventId": "cb-000003",
+      "timestamp": "2026-10-09T20:00:02.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p2",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "HUMAN" }
+    },
+    {
+      "eventId": "cb-000004",
+      "timestamp": "2026-10-09T20:00:03.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "bot1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "BOT", "botLevel": "easy" }
+    },
+    {
+      "eventId": "cb-000005",
+      "timestamp": "2026-10-09T20:00:04.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "bot2",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "BOT", "botLevel": "hard" }
+    },
+    {
+      "eventId": "cb-000006",
+      "timestamp": "2026-10-09T20:00:20.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "bot1", "weapon": "rifle", "damage": 120 }
+    },
+    {
+      "eventId": "cb-000007",
+      "timestamp": "2026-10-09T20:00:35.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "bot2",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p2", "weapon": "shotgun", "damage": 90 }
+    },
+    {
+      "eventId": "cb-000008",
+      "timestamp": "2026-10-09T20:00:50.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p2",
+      "type": "PLAYER_DISCONNECTED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "cb-000009",
+      "timestamp": "2026-10-09T20:01:20.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p2",
+      "type": "PLAYER_RECONNECTED",
+      "action": null,
+      "data": null
+    },
+    {
+      "eventId": "cb-000010",
+      "timestamp": "2026-10-09T20:01:35.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "bot2", "weapon": "rifle", "damage": 110 }
+    },
+    {
+      "eventId": "cb-000011",
+      "timestamp": "2026-10-09T20:01:40.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "bot1", "weapon": "rifle", "damage": 100 }
+    },
+    {
+      "eventId": "cb-000012",
+      "timestamp": "2026-10-09T20:01:44.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "p1",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p2", "weapon": "sniper", "damage": 140 }
+    },
+    {
+      "eventId": "cb-000013",
+      "timestamp": "2026-10-09T20:02:10.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": "bot2",
+      "type": "PLAYER_ELIMINATED",
+      "action": null,
+      "data": { "victimId": "p1", "weapon": "pistol", "damage": 80 }
+    },
+    {
+      "eventId": "cb-000014",
+      "timestamp": "2026-10-09T20:02:20.000Z",
+      "gameId": "combat",
+      "gameVersion": "1.0",
+      "matchId": "m-combat-002",
+      "playerId": null,
+      "type": "MATCH_FINISHED",
+      "action": null,
+      "data": null
+    }
+  ]
+}

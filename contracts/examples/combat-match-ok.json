@@ -12,7 +12,7 @@
       "playerId": null,
       "type": "MATCH_STARTED",
       "action": null,
-      "data": { "mode": "deathmatch", "arena": "Bodega" }
+      "data": { "matchMode": "PVP", "mode": "deathmatch", "arena": "Bodega" }
     },
     {
       "eventId": "e-100002",
@@ -23,7 +23,7 @@
       "playerId": "p1",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-100003",
@@ -34,7 +34,7 @@
       "playerId": "p2",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-100004",
@@ -45,7 +45,7 @@
       "playerId": "p3",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-100005",
@@ -56,7 +56,7 @@
       "playerId": "p4",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-100006",

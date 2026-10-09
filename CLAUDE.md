@@ -17,11 +17,13 @@ No agregues frameworks, capas, patrones ni dependencias que no hagan falta. Ante
 
 | Persona | Responsable de | Carpetas |
 |---|---|---|
-| **Gabriel** | Módulo Scala, simulador, datos de prueba y pruebas | `analytics-scala/`, `simulator/` |
-| **Samuel** | Módulo Go, Docker, docker-compose, CI/CD, deployment | `ingest-go/`, `docker-compose.yml`, `.github/` |
+| **Gabriel** | Módulo Scala: los cuatro analizadores, el `GenericAnalyzer` y las estadísticas globales. Simulador (en Go), datos de prueba y pruebas | `analytics-scala/`, `simulator/` |
+| **Samuel** | Módulo Go: ingestión, estado por partida, concurrencia y `GET /metrics`. Docker, docker-compose, CI/CD, deployment | `ingest-go/`, `docker-compose.yml`, `.github/` |
 | **Ambos** | Contrato, documentación, integración y demo | `contracts/`, `docs/` |
 
 Los roles se intercambiaron el 3 de octubre de 2026, a pedido de Samuel: antes Gabriel llevaba Go y Samuel Scala. El andamiaje de `ingest-go/` que entra en el PR de la Fase 0 lo escribió Gabriel **antes** del intercambio; a partir del merge ese módulo es de Samuel.
+
+El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos de ellos preparados para Jugador vs Máquina. El reparto no cambió de dueños: Gabriel suma los dos analizadores nuevos, el `GenericAnalyzer` y las estadísticas globales; Samuel suma `GET /metrics`. Lo único que cambia de forma es el **simulador, que se reescribe en Go** sin dejar de ser de Gabriel: el lenguaje no sigue al dueño. Hasta que ese reemplazo exista, el simulador en Python que está en `simulator/` sigue siendo el que funciona.
 
 Cada quien trabaja en sus carpetas para evitar conflictos de merge. Cambios en `contracts/` requieren aprobación de ambos.
 Claude Code: si te piden algo fuera de las carpetas de quien te habla, avisa antes de tocarlo.
@@ -30,8 +32,9 @@ Claude Code: si te piden algo fuera de las carpetas de quien te habla, avisa ant
 
 ```
 simulador ──JSON──> [ Go: ingestión ] ──HTTP/JSON──> [ Scala: análisis ] ──> resultados JSON
- (eventos)          valida, agrupa por partida,       estadísticas + reglas    GET /results/...
-                    concurrencia, estado              puerto 8081
+ (4 juegos,         valida, agrupa por partida,       4 analizadores +         GET /results/...
+  en paralelo)      concurrencia, estado              GenericAnalyzer          puerto 8081
+                    GET /metrics
                     puerto 8080
 ```
 
@@ -46,15 +49,18 @@ Hace:
 3. Mantener estado por partida (jugadores activos, eventos acumulados, si inició/terminó).
 4. Procesar partidas/juegos en paralelo: **una goroutine por partida** que recibe sus eventos por un channel; un despachador enruta por `matchId`.
 5. Cuando una partida está lista (`MATCH_FINISHED`), enviarla a Scala como lote.
+6. Exponer `GET /metrics`: eventos recibidos, válidos, inválidos **desglosados por razón de rechazo** (los códigos de `contracts/rejections.md`) y partidas activas.
 
-NO hace: estadísticas ni reglas. Eso es de Scala.
+NO hace: estadísticas ni reglas de juego. Eso es de Scala. `GET /metrics` son métricas de la **ingestión**, no del juego: cuántos eventos entraron y cuántos se rechazaron y por qué. Go sigue sin saber qué es una vuelta ni una eliminación.
 Preferir la biblioteca estándar (`net/http`, `encoding/json`, `sync`). Tratar `data` como JSON opaco (`json.RawMessage`): Go no debe conocer los detalles de cada juego.
 
 ### Scala (`analytics-scala/`) — qué hace
 1. Recibir el lote de una partida y convertirlo a case classes inmutables.
-2. Elegir un analizador según `gameId` (`trait GameAnalyzer`, un objeto por juego: `RacingAnalyzer`, `CombatAnalyzer`). Agregar un juego nuevo = agregar un analizador, sin tocar el resto.
+2. Elegir un analizador según `gameId` (`trait GameAnalyzer`, un objeto por juego: `RacingAnalyzer`, `CombatAnalyzer`, `BlackjackAnalyzer`, `BattleshipAnalyzer`). Agregar un juego nuevo = agregar un analizador y una línea en el registro, sin tocar el resto.
 3. Calcular estadísticas y reglas con operaciones funcionales.
-4. Producir resultados JSON y exponerlos (`GET /results/matches/{matchId}`, `GET /results/players/{playerId}`; ajustar en Fase 0).
+4. Calcular con el `GenericAnalyzer` lo que **no depende de ningún juego**, usando solo el sobre común: distribución por tipo de evento y actividad por minuto. Un juego nuevo trae esas métricas gratis.
+5. Calcular las estadísticas globales que cruzan partidas y juegos: perfil del jugador, ranking por juego, desconexiones y win rate contra bots frente a contra humanos.
+6. Producir resultados JSON y exponerlos (`GET /results/matches/{matchId}`, `GET /results/players/{playerId}`, `GET /results/games/{gameId}/ranking`). Forma exacta en `contracts/results.md`.
 
 Reglas de estilo Scala: sin `var`, sin colecciones mutables, sin `null`, `sealed trait` + case classes, funciones puras para el análisis y el IO (HTTP, JSON) aislado en los bordes. Usar `Option`/`Either` en vez de excepciones.
 
@@ -80,30 +86,74 @@ Validación mínima en Go: `eventId`, `timestamp` (RFC 3339), `gameId`, `gameVer
 
 El sobre es **cerrado**: un campo que no esté en el contrato se rechaza (`unknown_field`). El catálogo completo de razones de rechazo está en `contracts/rejections.md`.
 
-Eventos generales (todos los juegos): `MATCH_STARTED`, `PLAYER_JOINED`, `MATCH_FINISHED`.
+Eventos generales (todos los juegos): `MATCH_STARTED`, `PLAYER_JOINED`, `PLAYER_DISCONNECTED`, `PLAYER_RECONNECTED`, `MATCH_FINISHED`.
+
+**El catálogo completo de tipos y la forma de `data` por juego está en `contracts/events.md`**, con la justificación de cada evento. Dos campos de ahí los usa el núcleo y conviene tenerlos presentes:
+
+- `MATCH_STARTED.data.matchMode`: `"PVP"` o `"PVE"`.
+- `PLAYER_JOINED.data.playerType`: `"HUMAN"` o `"BOT"`, con `botLevel` opcional (`"easy"` / `"hard"`).
+
+Van en `data` y no en el sobre porque el sobre es común a los diecisiete tipos de evento y estos dos solo aplican a uno cada uno. Son la preparación para **Jugador vs Máquina**: un bot es un jugador con un atributo, no un caso especial del modelo, y eso es lo que permite calcular «win rate contra bots» sin lógica aparte. Este proyecto no implementa la IA; solo deja el contrato listo para acoplarla.
 
 ## Juegos elegidos (propuesta; confirmar en Fase 0)
 
-Elegimos dos juegos con forma distinta para demostrar que el sistema es genérico.
+**El mínimo de cuatro juegos es una indicación verbal del profesor, no está en el enunciado escrito.** `docs/enunciado.md` §5 dice "uno o varios tipos de juegos" y no fija un mínimo; el profesor dijo en clase que esperaba al menos 4. No hay contradicción, pero el número no se puede citar del documento: si lo preguntan en la defensa, la fuente es la clase.
 
-### Carreras (`gameId: "racing"`)
-- Eventos: `MATCH_STARTED` (`{laps, track}`), `PLAYER_JOINED`, `LAP_COMPLETED` (`{lap, lapTimeMs, position}`), `PENALTY` (`{seconds, reason}`), `MATCH_FINISHED`.
-- Por jugador: mejor vuelta, tiempo promedio por vuelta, consistencia (desviación estándar).
-- Por partida: ganador y duración total.
-- Combinando tipos de evento: **tiempo ajustado** = suma de `LAP_COMPLETED` + penalizaciones `PENALTY`; define el ganador.
-- Regla de secuencia: **remontada** — un jugador estuvo en las últimas posiciones en alguna vuelta y terminó ganando (fold sobre su serie de posiciones).
-- Adelantamientos: posición que mejora entre vueltas consecutivas.
+Cuatro juegos de forma deliberadamente distinta, para demostrar que el núcleo es genérico. Dos de ellos (`blackjack` y `battleship`) son Jugador vs Máquina, y `combat` puede serlo. El detalle de los eventos y el porqué de cada uno está en `contracts/events.md`.
 
-### Combate (`gameId: "combat"`)
-- Eventos: `MATCH_STARTED`, `PLAYER_JOINED`, `PLAYER_ELIMINATED` (`playerId` = quien elimina; `data`: `{victimId, weapon, damage}`), `MATCH_FINISHED`.
-- Por jugador: eliminaciones, muertes, K/D, daño promedio.
-- Por partida: jugador más letal y duración.
+Cada juego tiene **al menos tres estadísticas y una regla de secuencia**, que es lo que piden los puntos 6 a 9 del enunciado §9.
+
+### Carreras (`gameId: "racing"`) — PVP
+- Eventos propios: `LAP_COMPLETED` (`{lap, lapTimeMs, position}`), `PENALTY` (`{seconds, reason}`).
+- Por jugador: mejor vuelta, tiempo promedio, consistencia (desviación poblacional), penalizaciones acumuladas.
+- Por partida: ganador, vuelta rápida de la carrera, total de adelantamientos.
+- Combinando tipos de evento: **tiempo ajustado** = `LAP_COMPLETED` + `PENALTY`; define el ganador.
+- Regla de secuencia: **remontada**.
+
+### Combate (`gameId: "combat"`) — PVP o PVE
+- Eventos propios: `PLAYER_ELIMINATED` (`playerId` = quien elimina; `data`: `{victimId, weapon, damage}`).
+- Por jugador: eliminaciones, muertes, K/D, daño promedio y **K/D contra bots**.
+- Por partida: jugador más letal y **primera sangre** (el primer `PLAYER_ELIMINATED`).
 - Combinando eventos: eliminaciones por arma / daño promedio por arma.
-- Regla de secuencia: **racha** — 3 eliminaciones en ≤10 s sin morir entre medio. (Opcional: **venganza** — A elimina a B y luego B elimina a A.)
+- Reglas de secuencia: **racha** y **venganza**.
+
+Con el requisito nuevo los bots participan como jugadores: una eliminación puede tener como autor o como víctima a un bot. Eso no cambia el evento, solo el `playerType` de quien se unió.
+
+### Blackjack (`gameId: "blackjack"`) — PVE, contra el crupier
+- Eventos propios: `BET_PLACED` (`{amount}`), `CARD_DEALT` (`{card, to}`), `PLAYER_HIT`, `PLAYER_STAND`, `ROUND_RESULT` (`{outcome, payout}`).
+- Por jugador: % de victorias, saldo neto, apuesta promedio, % de rondas en que se pasa de 21.
+- Por partida: rondas jugadas y saldo del crupier.
+- Regla de secuencia: **tilt**.
+
+**El valor de la mano no viaja en los eventos.** Scala lo reconstruye con un `foldLeft` sobre las cartas de la ronda. Es deliberado: si viniera calculado, el análisis sería leer un número en vez de derivarlo, que es justo lo que el enunciado §2 pide evitar.
+
+### Hundir la flota (`gameId: "battleship"`) — PVE, contra la máquina
+- Eventos propios: `SHOT_FIRED` (`{coord, hit}`), `SHIP_SUNK` (`playerId` = **dueño** del barco hundido; `data`: `{ship, size}`).
+- Por jugador: precisión y barcos hundidos.
+- Por partida: tiros hasta ganar y promedio de tiros por barco hundido.
+- Regla de secuencia: **racha de aciertos**.
+
+El `playerId` de `SHIP_SUNK` es el dueño del barco, no quien disparó, igual que en combate la víctima no es el autor. Misma convención en los dos juegos para no tener que recordar una excepción.
+
+## Estadísticas generales de plataforma
+
+No pertenecen a ningún juego y por eso se calculan una sola vez para los cuatro.
+
+- **`GenericAnalyzer`** — usa **solo el sobre común**, sin una línea de código de ningún juego: duración de la partida, cantidad de eventos, distribución por tipo de evento y actividad por minuto. Que esto funcione sin saber de qué juego se trata es la demostración concreta de que el sobre alcanza.
+- **Perfil global del jugador** — partidas por juego y % de victorias total, para el mismo `playerId` en varios juegos.
+- **Ranking por juego** — los N mejores.
+- **Desconexiones** — `PLAYER_DISCONNECTED` seguido de `PLAYER_RECONNECTED` en **≤ 60 s** cuenta como reconexión; si nunca vuelve, es abandono.
+- **Win rate contra bots frente a contra humanos** — particionando por `playerType`.
 
 ## Simulador y datos de prueba (`simulator/`)
 
-Simula al sistema de juegos externo. Debe generar: varias partidas, varios jugadores, partidas de ambos juegos **en paralelo**, casos normales y casos armados a mano que disparen cada regla (una remontada, una racha), y algunos eventos inválidos para probar la validación. Salida: archivos JSON y/o envío a `POST /events`. Los datos de racing deben ser coherentes (posiciones derivadas de tiempos acumulados).
+Simula al sistema de juegos externo. **Se escribe en Go** (decisión 17): un simulador concurrente en Go refuerza el paradigma imperativo del proyecto y evita sumar un tercer lenguaje al despliegue. Sigue siendo de Gabriel; el lenguaje no sigue al dueño.
+
+Debe generar: partidas de los **cuatro** juegos **en paralelo**, varios jugadores, humanos y bots, casos normales y casos armados a mano que disparen **cada regla** (una remontada, una racha de combate, un tilt, una racha de aciertos), eventos fuera de orden y al menos un evento inválido por cada razón de `contracts/rejections.md`.
+
+Salida: archivos JSON y/o envío a `POST /events`. Los datos de racing deben ser coherentes (posiciones derivadas de tiempos acumulados) y los de blackjack también (el `outcome` tiene que concordar con el valor de las manos).
+
+**Estado:** hoy `simulator/` tiene un simulador en **Python** que cubre dos juegos y funciona. Se mantiene hasta que exista el reemplazo en Go, para no dejar el repo sin forma de probar el análisis; el borrado va en el PR que traiga el de Go.
 
 ## Fase 0 — Diseño conjunto (antes de programar)
 
@@ -131,6 +181,12 @@ Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el rep
 | 9b | Versiones y bibliotecas de Scala | Scala 3.3.8 (LTS), sbt 1.13.0, Java 21, MUnit 1.3.6, **cask 0.11.3** (HTTP) y **upickle 4.4.3** (JSON). Justificación y alternativas descartadas en `analytics-scala/README.md` | G | ✅ |
 | 10 | Repo, CI y deployment | GitHub, GitHub Actions, GHCR; entorno de deployment por elegir | S | ⬜ |
 | 11 | Reparto y ritmo | Tabla de "Reparto de trabajo" y cronograma de 4 días | A | ⬜ |
+| 12 | **Cuatro juegos** | `racing`, `combat`, `blackjack`, `battleship`; dos de ellos preparados para Jugador vs Máquina | A | ⬜ |
+| 13 | **`matchMode` y `playerType`** | `MATCH_STARTED.data.matchMode` (`PVP`/`PVE`) y `PLAYER_JOINED.data.playerType` (`HUMAN`/`BOT`, con `botLevel` opcional). Justificación en `contracts/events.md` | A | ⬜ |
+| 14 | **Formatos de los juegos nuevos** | Carta `"10H"`, `to` = `playerId` del receptor, `outcome` ∈ {`WIN`,`LOSE`,`PUSH`,`BLACKJACK`,`BUST`}, `payout` con signo; `coord` `"A1"`–`"J10"`, tablero 10×10, flota estándar de 5 barcos | A | ⬜ |
+| 15 | **Desconexiones** | `PLAYER_DISCONNECTED` / `PLAYER_RECONNECTED` como eventos generales; reconexión si vuelve en **≤ 60 s**, abandono si no. Razón de rechazo `reconnect_without_disconnect`, opcional | A | ⬜ |
+| 16 | **`GET /metrics` en Go** | Eventos recibidos, válidos, inválidos por razón de rechazo y partidas activas | S | ⬜ |
+| 17 | **Simulador en Go** | Se reescribe en Go el simulador que hoy está en Python; sigue siendo de Gabriel | G | ✅ |
 
 Dos cosas quedaron decididas al armar el andamiaje y conviene dejarlas explícitas. Con el reparto nuevo las dos caen del lado de Gabriel:
 
@@ -146,6 +202,17 @@ Dos cosas quedaron decididas al armar el andamiaje y conviene dejarlas explícit
 - **Racha (combat):** 3 `PLAYER_ELIMINATED` del mismo `playerId` en una ventana de ≤10 s, sin que ese jugador aparezca como `victimId` en medio.
 - **K/D (combat):** eliminaciones / muertes; si las muertes son 0, devolver las eliminaciones y marcar el caso (`kdUndefined: true`).
 - **Jugador más letal (combat):** el que tiene más eliminaciones; desempate por daño promedio.
+- **Primera sangre (combat):** el autor del primer `PLAYER_ELIMINATED` de la partida por `timestamp`.
+- **K/D contra bots (combat):** eliminaciones cuya víctima tiene `playerType: "BOT"` dividido entre las muertes cuyo autor es un bot. Mismo tratamiento del caso de cero muertes que el K/D normal.
+- **Vuelta rápida de la carrera (racing):** el menor `lapTimeMs` de toda la partida, con el jugador que lo hizo.
+- **Valor de una mano (blackjack):** `foldLeft` sobre las cartas. Cada as suma 11 y el resto su valor (figuras 10); mientras el total pase de 21 y queden ases contados como 11, se le restan 10. Por eso el acumulador lleva el total **y** la cantidad de ases.
+- **Tilt (blackjack):** tras tres `ROUND_RESULT` consecutivos del mismo jugador con `outcome` en {`LOSE`, `BUST`}, el `BET_PLACED` de la ronda siguiente es **mayor** que el de la última ronda perdida.
+- **% de pasarse de 21 (blackjack):** rondas con `outcome: "BUST"` sobre rondas jugadas.
+- **Saldo neto (blackjack):** suma de los `payout`. El saldo del crupier es su negativo.
+- **Precisión (battleship):** `SHOT_FIRED` con `hit: true` sobre el total de disparos del jugador.
+- **Barcos hundidos por un jugador (battleship):** los `SHIP_SUNK` cuyo `playerId` es **otro** jugador, porque ese campo lleva al dueño del barco.
+- **Racha de aciertos (battleship):** tres o más `SHOT_FIRED` consecutivos del mismo jugador con `hit: true`, sin un fallo en medio.
+- **Reconexión / abandono:** un `PLAYER_DISCONNECTED` seguido de `PLAYER_RECONNECTED` del mismo jugador en la misma partida dentro de **60 s** es una reconexión; si no aparece el reconnect, es abandono.
 
 Las convenciones numéricas (redondeo, promedios sin muestras, tiempos en milisegundos) están en `contracts/results.md`.
 
@@ -155,6 +222,7 @@ Las convenciones numéricas (redondeo, promedios sin muestras, tiempos en milise
 - Evento posterior a `MATCH_FINISHED` de esa partida → rechazar con razón `match_already_finished`.
 - `eventId` repetido → rechazar con razón `duplicate_event`.
 - Campo fuera del contrato → rechazar con razón `unknown_field`.
+- `PLAYER_RECONNECTED` de un jugador que no estaba desconectado → rechazar con razón `reconnect_without_disconnect` (opcional; ver `contracts/rejections.md`).
 - Eventos fuera de orden → aceptarlos y ordenar por `timestamp` antes de enviar a Scala.
 - Partida que nunca recibe `MATCH_FINISHED` → fuera de alcance al principio; opcional: timeout.
 - Respuesta de error de Scala → Go registra el error y reintenta una vez; no pierde la partida.
@@ -165,13 +233,17 @@ Las convenciones numéricas (redondeo, promedios sin muestras, tiempos en milise
 contracts/
   event.schema.json        # sobre común del evento
   batch.schema.json        # cuerpo del POST /analyze: {matchId, gameId, gameVersion, events:[...]}
+  events.md                # catálogo de tipos de evento y forma de data por juego
   results.md               # forma exacta del JSON de resultados por jugador y por partida
   rejections.md            # catálogo de razones de rechazo
   validate.py              # comprueba que los ejemplos cumplen los esquemas (corre en CI)
   examples/
-    racing-match-ok.json   # partida completa de carreras (~10 eventos mínimo)
-    combat-match-ok.json   # partida completa de combate
-    invalid-events.json    # al menos un caso por cada razón de rechazo
+    racing-match-ok.json        # carreras
+    combat-match-ok.json        # combate PVP
+    combat-vs-bot-match-ok.json # combate PVE, con bots y una desconexión
+    blackjack-match-ok.json     # blackjack contra el crupier
+    battleship-match-ok.json    # hundir la flota contra la máquina
+    invalid-events.json         # al menos un caso por cada razón de rechazo
 ingest-go/                 # proyecto Go vacío que compila y pasa `go test`
 analytics-scala/           # proyecto sbt vacío que compila y pasa `sbt test`
 simulator/                 # carpeta vacía con README
@@ -189,6 +261,21 @@ Además: `main` protegida (PR obligatorio, los cuatro checks del CI en verde, si
 - Los ejemplos de `contracts/examples/` validan contra los esquemas.
 - Ambos módulos vacíos compilan y el CI pasa en un PR de prueba.
 - Cada uno puede arrancar su parte sin necesitar nada del otro hasta el Día 3.
+
+## Cronograma (4 días tras la Fase 0)
+
+Adaptado al estado real del repo: lo tachado ya está en `main`.
+
+| Día | Gabriel (Scala + simulador) | Samuel (Go + infra) |
+|---|---|---|
+| **1 — Base** | ~~modelo inmutable~~, ~~`GameAnalyzer`~~; **`GenericAnalyzer`** | recibir y validar eventos |
+| **2 — Núcleo** | ~~`RacingAnalyzer`~~, ~~`CombatAnalyzer`~~; **K/D contra bots y primera sangre**; **simulador en Go: racing y combat** | estado por partida, goroutines, envío a Scala |
+| **3 — Juegos nuevos** | **`BlackjackAnalyzer` y `BattleshipAnalyzer`**; **estadísticas globales y ranking**; **simulador: blackjack y battleship** | **`GET /metrics`** |
+| **4 — Integración** | ensayo de la demo | docker-compose, CI/CD, deployment |
+
+La documentación se escribe durante los cuatro días, no al final.
+
+Lo que ya está hecho de la columna de Gabriel: el modelo, el `GameAnalyzer`, los analizadores de racing y combat, el almacén y los endpoints. Lo que falta de su columna es lo que aparece en **negrita**. La columna de Samuel está entera por hacer: `ingest-go/` sigue como quedó en la Fase 0.
 
 ## Flujo de git
 
@@ -214,6 +301,9 @@ cd ingest-go && go vet ./... && go test ./... && go build ./...
 # Scala
 cd analytics-scala && sbt test
 
+# Simulador (hoy en Python; pasará a Go, decisión 17)
+cd simulator && python -m unittest && python simulate.py
+
 # Contrato (requiere: pip install jsonschema)
 python contracts/validate.py
 
@@ -236,10 +326,10 @@ curl http://localhost:8081/health   # análisis
 
 ## Entregables (checklist del enunciado)
 
-- [ ] Código fuente Go y Scala
-- [x] Especificación del formato de eventos — `contracts/`
-- [ ] Descripción de los juegos y justificación de los eventos
-- [ ] Descripción de estadísticas y reglas — definiciones en este archivo, falta el documento final
+- [ ] Código fuente Go y Scala — Scala hecho para 2 de los 4 juegos; Go en esqueleto
+- [x] Especificación del formato de eventos — `contracts/event.schema.json` y `contracts/events.md`
+- [x] Descripción de los juegos y justificación de los eventos — `contracts/events.md`
+- [ ] Descripción de estadísticas y reglas — definiciones en este archivo y formas de salida en `contracts/results.md`; falta el documento final
 - [x] Dockerfiles y docker-compose
 - [x] Configuración del pipeline CI/CD — falta la parte de deployment (Fase 3)
 - [ ] Documentación de instalación, ejecución y deployment — `README.md` cubre instalación y ejecución
@@ -250,3 +340,7 @@ curl http://localhost:8081/health   # análisis
 
 El enunciado §14 dice "Fecha de entrega: domingo 18 de Setiembre de 2026", una fecha que ya pasó.
 Es un error de tipeo en el documento del curso. **Confirmar la fecha real con el profesor.**
+
+El mínimo de **4 juegos** también es verbal y no está en `docs/enunciado.md`. Vale la pena pedirle
+al profesor que lo confirme por escrito, aunque sea en un correo: es el requisito que más trabajo
+agregó al proyecto y ahora mismo no hay dónde señalarlo. En la misma consulta entra la fecha.

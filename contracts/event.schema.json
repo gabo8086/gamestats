@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gamestats.local/contracts/event.schema.json",
   "title": "GameStats event envelope",
-  "description": "Sobre comun de todo evento de GameStats. Lo especifico de cada juego vive en 'data' y el nucleo (Go) no lo interpreta.",
+  "description": "Sobre comun de todo evento de GameStats. Lo especifico de cada juego vive en 'data' y el nucleo (Go) no lo interpreta. El catalogo de tipos y la forma de 'data' por juego esta en contracts/events.md.",
   "type": "object",
   "additionalProperties": false,
   "required": ["eventId", "timestamp", "gameId", "gameVersion", "matchId", "type"],
@@ -21,8 +21,8 @@
     "gameId": {
       "type": "string",
       "minLength": 1,
-      "description": "Juego que produjo el evento. Scala elige el analizador segun este campo. Valores en uso: 'racing', 'combat'.",
-      "examples": ["racing", "combat"]
+      "description": "Juego que produjo el evento. Scala elige el analizador segun este campo. Valores en uso: 'racing', 'combat', 'blackjack', 'battleship'.",
+      "examples": ["racing", "combat", "blackjack", "battleship"]
     },
     "gameVersion": {
       "type": "string",
@@ -42,7 +42,7 @@
     "type": {
       "type": "string",
       "minLength": 1,
-      "description": "Tipo general del evento. Generales: MATCH_STARTED, PLAYER_JOINED, MATCH_FINISHED. De racing: LAP_COMPLETED, PENALTY. De combat: PLAYER_ELIMINATED."
+      "description": "Tipo general del evento. Es un string libre a proposito y no un enum: un enum obligaria a tocar el esquema y el nucleo cada vez que un juego nuevo trae un tipo nuevo, que es lo que el enunciado 12 pide evitar. Generales de todos los juegos: MATCH_STARTED, PLAYER_JOINED, PLAYER_DISCONNECTED, PLAYER_RECONNECTED, MATCH_FINISHED. De racing: LAP_COMPLETED, PENALTY. De combat: PLAYER_ELIMINATED. De blackjack: BET_PLACED, CARD_DEALT, PLAYER_HIT, PLAYER_STAND, ROUND_RESULT. De battleship: SHOT_FIRED, SHIP_SUNK. Catalogo completo en contracts/events.md."
     },
     "action": {
       "type": ["string", "null"],
@@ -50,7 +50,7 @@
     },
     "data": {
       "type": ["object", "null"],
-      "description": "Informacion especifica del juego. Go la trata como JSON opaco (json.RawMessage); solo Scala la interpreta."
+      "description": "Informacion especifica del juego. Go la trata como JSON opaco (json.RawMessage); solo Scala la interpreta. Dos campos viajan aqui aunque los use el nucleo de Scala y no un juego concreto: 'matchMode' en MATCH_STARTED y 'playerType' en PLAYER_JOINED. Van en data y no en el sobre porque el sobre es cerrado y comun a los diecisiete tipos de evento, mientras que estos solo aplican a uno cada uno."
     }
   },
   "allOf": [

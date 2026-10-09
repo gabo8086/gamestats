@@ -1,6 +1,13 @@
 # Simulador de eventos
 
 > **Responsable: Gabriel.** Pasó a este lado con el intercambio de roles del 3 de octubre de 2026.
+>
+> ⚠️ **Este simulador se va a reemplazar por uno en Go** (decisión 17 del `CLAUDE.md`, 9 de octubre
+> de 2026). El de Python que está aquí cubre dos juegos y sigue funcionando; se mantiene hasta que
+> el de Go exista, para no dejar el repo sin forma de probar el análisis. El borrado va en el PR que
+> traiga el reemplazo.
+>
+> El de Go tiene que cubrir los **cuatro** juegos, humanos y bots, y disparar las cuatro reglas.
 
 Hace de sistema de juegos externo: GameStats no implementa los videojuegos, solo consume lo que esta
 fuente produce (enunciado §8). El contrato de lo que genera está en
@@ -45,13 +52,15 @@ lista**. Es lo que permitió validar todo el análisis mientras `ingest-go/` seg
 
 ## Decisiones
 
-### Lenguaje: Python 3, solo biblioteca estándar
+### Lenguaje: Python hoy, Go a partir de la decisión 17
 
-El simulador no entra en la nota de paradigmas — no es el módulo imperativo ni el funcional — así
-que el criterio fue minimizar fricción. El proyecto ya usa Python en el CI para
-`contracts/validate.py`, y con `urllib` de la estándar no hace falta ni una dependencia ni un
-toolchain nuevo. Scala habría permitido reusar las case classes del análisis, pero mete un segundo
-`main` en el build de sbt y complica el `assembly`.
+Cuando se escribió, el criterio fue minimizar fricción: el simulador no entra en la nota de
+paradigmas, el proyecto ya usaba Python en el CI para `contracts/validate.py`, y con `urllib` de la
+estándar no hacía falta ni una dependencia ni un toolchain nuevo.
+
+Con el cambio de requisito se decidió **reescribirlo en Go**: un simulador concurrente en Go
+refuerza el paradigma imperativo que el curso evalúa, y evita sumar un tercer lenguaje al
+despliegue. El criterio original no era malo; cambió lo que se le pide al simulador.
 
 ### Determinista
 

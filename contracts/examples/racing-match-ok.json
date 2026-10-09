@@ -12,7 +12,7 @@
       "playerId": null,
       "type": "MATCH_STARTED",
       "action": null,
-      "data": { "laps": 3, "track": "Circuito Volcan" }
+      "data": { "matchMode": "PVP", "laps": 3, "track": "Circuito Volcan" }
     },
     {
       "eventId": "e-000002",
@@ -23,7 +23,7 @@
       "playerId": "p1",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-000003",
@@ -34,7 +34,7 @@
       "playerId": "p2",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-000004",
@@ -45,7 +45,7 @@
       "playerId": "p3",
       "type": "PLAYER_JOINED",
       "action": null,
-      "data": null
+      "data": { "playerType": "HUMAN" }
     },
     {
       "eventId": "e-000005",
