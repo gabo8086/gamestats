@@ -22,19 +22,25 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 
 ## Estado
 
-**Fase 0 (diseño y andamiaje) — en revisión.** Los dos módulos compilan y pasan sus pruebas, pero
-todavía no hacen el trabajo real: Go responde `/health` y Scala también. Las decisiones de diseño
-están en la tabla de [`CLAUDE.md`](CLAUDE.md) y **ninguna está aprobada todavía**: Samuel tiene que
-revisarlas antes de que empiece el Día 1.
+**En desarrollo.** El módulo de análisis está completo para `racing` y `combat`: recibe el lote de
+una partida, calcula las estadísticas y las reglas, y expone los resultados. El módulo de ingestión
+sigue en esqueleto, respondiendo solo `/health`.
+
+El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos preparados para
+Jugador vs Máquina. El contrato ya está actualizado; los analizadores de `blackjack` y `battleship`
+están por escribir.
+
+Las decisiones de diseño están en la tabla de [`CLAUDE.md`](CLAUDE.md) y **casi ninguna está
+aprobada todavía**: Samuel tiene que revisarlas.
 
 ## Estructura
 
 | Carpeta | Qué es | Responsable |
 |---|---|---|
 | [`contracts/`](contracts/) | formato de eventos, lote y resultados: la fuente de verdad | ambos |
-| [`ingest-go/`](ingest-go/) | módulo de ingestión (Go) | Gabriel |
-| [`analytics-scala/`](analytics-scala/) | módulo de análisis (Scala) | Samuel |
-| [`simulator/`](simulator/) | fuente de eventos simulada | Samuel |
+| [`ingest-go/`](ingest-go/) | módulo de ingestión (Go) | Samuel |
+| [`analytics-scala/`](analytics-scala/) | módulo de análisis (Scala) | Gabriel |
+| [`simulator/`](simulator/) | fuente de eventos simulada | Gabriel |
 | [`docs/`](docs/) | enunciado del curso | ambos |
 
 Cambios en `contracts/` requieren aprobación de los dos: todo lo demás depende de esos archivos.
@@ -84,16 +90,26 @@ Comprueba que los ejemplos cumplen los esquemas y las reglas que JSON Schema no 
 
 ## Juegos
 
-Dos juegos de forma deliberadamente distinta, para demostrar que el núcleo es genérico: agregar un
+Cuatro juegos de forma deliberadamente distinta, para demostrar que el núcleo es genérico: agregar un
 juego significa agregar un analizador en Scala, sin tocar Go ni el sobre del evento.
 
-- **Carreras** (`racing`) — vueltas, tiempos, posiciones y penalizaciones. Regla de secuencia:
-  **remontada** (un jugador estuvo último en alguna vuelta y terminó ganando).
-- **Combate** (`combat`) — eliminaciones, armas y daño. Regla de secuencia: **racha** (3
-  eliminaciones en ≤10 s sin morir en medio).
+| Juego | Modo | Eventos propios | Regla de secuencia |
+|---|---|---|---|
+| **Carreras** (`racing`) | PVP | vueltas y penalizaciones | **remontada** — estuvo último y ganó |
+| **Combate** (`combat`) | PVP o PVE | eliminaciones con arma y daño | **racha** — 3 eliminaciones en ≤10 s sin morir |
+| **Blackjack** (`blackjack`) | PVE | apuestas, cartas y resultado de ronda | **tilt** — sube la apuesta tras 3 derrotas |
+| **Hundir la flota** (`battleship`) | PVE | disparos y barcos hundidos | **racha de aciertos** — 3 seguidos |
 
-El detalle de cada estadística y de cada regla está en [`CLAUDE.md`](CLAUDE.md), y la forma exacta de
-la salida en [`contracts/results.md`](contracts/results.md).
+En los modos PVE la máquina es un jugador más, con `playerType: "BOT"`. El sistema no implementa la
+IA; el contrato queda listo para acoplarla.
+
+Además hay estadísticas que **no dependen de ningún juego** y se calculan igual para los cuatro:
+distribución de eventos, actividad por minuto, perfil global del jugador, ranking por juego,
+desconexiones y win rate contra bots frente a contra humanos.
+
+El catálogo de eventos y su justificación está en [`contracts/events.md`](contracts/events.md), el
+detalle de cada estadística en [`CLAUDE.md`](CLAUDE.md), y la forma exacta de la salida en
+[`contracts/results.md`](contracts/results.md).
 
 ## Documentación
 
@@ -101,6 +117,8 @@ la salida en [`contracts/results.md`](contracts/results.md).
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | decisiones de diseño, definiciones precisas, reparto de trabajo |
 | [`contracts/event.schema.json`](contracts/event.schema.json) | el sobre común del evento |
+| [`contracts/events.md`](contracts/events.md) | catálogo de tipos de evento por juego y su justificación |
+| [`ParaSamuel.md`](ParaSamuel.md) | resumen de todas las decisiones tomadas, con el porqué |
 | [`contracts/batch.schema.json`](contracts/batch.schema.json) | el lote que Go envía a Scala |
 | [`contracts/results.md`](contracts/results.md) | forma del JSON de resultados |
 | [`contracts/rejections.md`](contracts/rejections.md) | razones de rechazo de eventos |

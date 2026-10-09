@@ -133,12 +133,33 @@ def _razones_documentadas() -> set[str]:
     return codigos
 
 
+def _check_cobertura_de_juegos(lotes) -> None:
+    """Cada juego declarado en el contrato tiene que tener al menos un ejemplo valido."""
+    declarados = {"racing", "combat", "blackjack", "battleship"}
+    con_ejemplo = {load(r)["gameId"] for r in lotes}
+    faltan = declarados - con_ejemplo
+    if faltan:
+        fail(f"faltan ejemplos de partida para {sorted(faltan)}")
+    sobran = con_ejemplo - declarados
+    if sobran:
+        fail(f"hay ejemplos de juegos que no estan en el contrato: {sorted(sobran)}")
+    print(f"  juegos cubiertos: {', '.join(sorted(con_ejemplo))}")
+
+
 def main() -> int:
     event_validator, batch_validator = build_validators()
 
     print("Validando contratos...")
-    for nombre in ("racing-match-ok.json", "combat-match-ok.json"):
-        check_batch(EXAMPLES / nombre, batch_validator, event_validator)
+
+    # Se descubren por patron y no por una lista fija: con cuatro juegos, una lista quemada aqui se
+    # queda desactualizada en cuanto alguien agrega un ejemplo y nadie se entera.
+    lotes = sorted(EXAMPLES.glob("*-match-ok.json"))
+    if not lotes:
+        fail("no hay ningun *-match-ok.json en contracts/examples/")
+    for ruta in lotes:
+        check_batch(ruta, batch_validator, event_validator)
+
+    _check_cobertura_de_juegos(lotes)
     check_invalid(EXAMPLES / "invalid-events.json", event_validator)
 
     if errors:

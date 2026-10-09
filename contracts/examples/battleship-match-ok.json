@@ -1,0 +1,212 @@
+{
+  "matchId": "m-battleship-001",
+  "gameId": "battleship",
+  "gameVersion": "1.0",
+  "events": [
+    {
+      "eventId": "bs-000001",
+      "timestamp": "2026-10-09T19:00:00.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": null,
+      "type": "MATCH_STARTED",
+      "action": null,
+      "data": {
+        "matchMode": "PVE",
+        "boardSize": 10,
+        "fleet": [
+          { "ship": "destroyer", "size": 2 },
+          { "ship": "cruiser", "size": 3 }
+        ]
+      }
+    },
+    {
+      "eventId": "bs-000002",
+      "timestamp": "2026-10-09T19:00:01.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "HUMAN" }
+    },
+    {
+      "eventId": "bs-000003",
+      "timestamp": "2026-10-09T19:00:02.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "PLAYER_JOINED",
+      "action": null,
+      "data": { "playerType": "BOT", "botLevel": "easy" }
+    },
+    {
+      "eventId": "bs-000004",
+      "timestamp": "2026-10-09T19:00:10.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "A1", "hit": false }
+    },
+    {
+      "eventId": "bs-000005",
+      "timestamp": "2026-10-09T19:00:14.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "D1", "hit": true }
+    },
+    {
+      "eventId": "bs-000006",
+      "timestamp": "2026-10-09T19:00:18.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "B2", "hit": true }
+    },
+    {
+      "eventId": "bs-000007",
+      "timestamp": "2026-10-09T19:00:22.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "D2", "hit": true }
+    },
+    {
+      "eventId": "bs-000008",
+      "timestamp": "2026-10-09T19:00:23.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHIP_SUNK",
+      "action": null,
+      "data": { "ship": "destroyer", "size": 2 }
+    },
+    {
+      "eventId": "bs-000009",
+      "timestamp": "2026-10-09T19:00:26.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "B3", "hit": true }
+    },
+    {
+      "eventId": "bs-000010",
+      "timestamp": "2026-10-09T19:00:27.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHIP_SUNK",
+      "action": null,
+      "data": { "ship": "destroyer", "size": 2 }
+    },
+    {
+      "eventId": "bs-000011",
+      "timestamp": "2026-10-09T19:00:30.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "F5", "hit": false }
+    },
+    {
+      "eventId": "bs-000012",
+      "timestamp": "2026-10-09T19:00:34.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "C5", "hit": true }
+    },
+    {
+      "eventId": "bs-000013",
+      "timestamp": "2026-10-09T19:00:38.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "G7", "hit": false }
+    },
+    {
+      "eventId": "bs-000014",
+      "timestamp": "2026-10-09T19:00:42.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "C6", "hit": true }
+    },
+    {
+      "eventId": "bs-000015",
+      "timestamp": "2026-10-09T19:00:46.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "H2", "hit": false }
+    },
+    {
+      "eventId": "bs-000016",
+      "timestamp": "2026-10-09T19:00:50.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "p1",
+      "type": "SHOT_FIRED",
+      "action": null,
+      "data": { "coord": "C7", "hit": true }
+    },
+    {
+      "eventId": "bs-000017",
+      "timestamp": "2026-10-09T19:00:51.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": "bot1",
+      "type": "SHIP_SUNK",
+      "action": null,
+      "data": { "ship": "cruiser", "size": 3 }
+    },
+    {
+      "eventId": "bs-000018",
+      "timestamp": "2026-10-09T19:00:55.000Z",
+      "gameId": "battleship",
+      "gameVersion": "1.0",
+      "matchId": "m-battleship-001",
+      "playerId": null,
+      "type": "MATCH_FINISHED",
+      "action": null,
+      "data": null
+    }
+  ]
+}

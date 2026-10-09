@@ -373,6 +373,13 @@ def casos_invalidos(base: datetime) -> dict:
                                type="PLAYER_JOINED", playerId="p1"),
             },
             {
+                "expectedReason": "reconnect_without_disconnect",
+                "note": "se reconecta sin haberse desconectado antes",
+                "validAgainstSchema": True,
+                "precedingEvents": [arranque],
+                "event": sobre(eventId="x-000008", type="PLAYER_RECONNECTED", playerId="p1"),
+            },
+            {
                 "expectedReason": "match_already_finished",
                 "note": "llega una vuelta despues del MATCH_FINISHED de esa partida",
                 "validAgainstSchema": True,

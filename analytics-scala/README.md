@@ -1,7 +1,12 @@
 # analytics-scala — módulo de análisis
 
-> **Responsable: Gabriel.** El módulo está completo de punta a punta: recibe el lote de una partida,
-> la analiza y expone los resultados. Falta conectarlo con el simulador y el módulo de Go.
+> **Responsable: Gabriel.** El módulo funciona de punta a punta para `racing` y `combat`: recibe el
+> lote de una partida, la analiza y expone los resultados.
+>
+> **Pendiente tras el cambio de requisito del 9 de octubre de 2026:** los analizadores de
+> `blackjack` y `battleship`, el `GenericAnalyzer` y las estadísticas globales (perfil del jugador,
+> ranking por juego, desconexiones, win rate contra bots). El contrato de todo eso ya está escrito
+> en `../contracts/events.md` y `../contracts/results.md`.
 
 Convierte el lote de eventos de una partida en estadísticas y patrones. Es la parte **funcional** del
 proyecto: datos inmutables, funciones puras y transformaciones de colecciones.
@@ -28,6 +33,9 @@ sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 | `GameAnalyzer.scala` | el trait, el sobre común del resultado y el registro de juegos |
 | `RacingAnalyzer.scala` | estadísticas y remontada de carreras |
 | `CombatAnalyzer.scala` | estadísticas, racha y venganza de combate |
+| *(pendiente)* `BlackjackAnalyzer.scala` | % de victorias, saldo, apuesta promedio, % de bust; regla `tilt` |
+| *(pendiente)* `BattleshipAnalyzer.scala` | precisión y barcos hundidos; regla `hitStreak` |
+| *(pendiente)* `GenericAnalyzer.scala` | lo que sale solo del sobre, sin conocer el juego |
 | `ResultStore.scala` | lo analizado hasta ahora, en memoria |
 | `Main.scala` | los endpoints: el borde HTTP |
 
@@ -74,6 +82,14 @@ pruebas se caen, que es lo que queremos que pase.
 va en el `gameSpecific` de la partida, qué va en el de cada jugador y qué patrones disparó. Agregar
 un juego es escribir un objeto que extienda el trait y añadir una línea al registro de
 `object GameAnalyzer`: no se toca ni el sobre, ni los endpoints, ni los otros juegos.
+
+Que pasar de dos juegos a cuatro no obligue a tocar nada de lo ya escrito es la prueba de que ese
+diseño era el correcto. Los dos analizadores nuevos son archivos nuevos y dos líneas en el registro.
+
+**Dos cosas que los analizadores nuevos traen y los viejos no:** en `blackjack` el valor de la mano
+no viene en los eventos y hay que reconstruirlo con un `foldLeft` que lleve el total y la cantidad
+de ases (el as vale 11 salvo que pase de 21); en `battleship` el `playerId` de `SHIP_SUNK` es el
+**dueño** del barco hundido, no quien disparó, igual que la víctima en `combat`.
 
 Todo el cálculo son funciones puras del lote. `analizar` recibe el reloj como parámetro en vez de
 llamar a `Instant.now()` por dentro — el mismo patrón que `Config.fromEnv` — así el resultado es

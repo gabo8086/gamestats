@@ -11,6 +11,30 @@ no la fuente de verdad.
 
 ---
 
+## 0. Cambió el requisito: ahora son cuatro juegos
+
+**9 de octubre de 2026.** El sistema pasa de 2 a **4 juegos**, y dos de ellos tienen que quedar
+preparados para un modo Jugador vs Máquina que no se implementa en este proyecto.
+
+Los juegos son `racing` (igual que antes), `combat` (ahora puede tener bots), `blackjack` (contra el
+crupier) y `battleship` (contra la máquina).
+
+**El reparto no cambia de dueños.** Yo sumo los dos analizadores nuevos, el `GenericAnalyzer` y las
+estadísticas globales; vos sumás `GET /metrics` en Go. Lo único que cambia de forma es el simulador,
+que se reescribe **en Go** sin dejar de ser mío: el lenguaje no sigue al dueño.
+
+Dos campos nuevos en el contrato, que son toda la preparación para Jugador vs Máquina:
+`MATCH_STARTED.data.matchMode` (`PVP`/`PVE`) y `PLAYER_JOINED.data.playerType` (`HUMAN`/`BOT`). Un
+bot es un jugador con un atributo, no un caso especial del modelo. Eso es lo que permite calcular
+«win rate contra bots» particionando, sin lógica aparte.
+
+El catálogo completo de eventos y el porqué de cada uno está ahora en
+[`contracts/events.md`](contracts/events.md), que es nuevo.
+
+**Lo que esto no rompió:** ni una línea del módulo Scala ya escrito. Las 48 pruebas siguen pasando
+con el contrato nuevo. Agregar dos juegos son dos archivos nuevos y dos líneas en el registro de
+`GameAnalyzer`. Era la apuesta del diseño y salió bien.
+
 ## 1. Intercambiamos roles
 
 Lo pediste vos y ya está aplicado en el `CLAUDE.md`:
@@ -40,9 +64,9 @@ figuraban como si las aprobaras solo vos. Eso estaba mal en las dos direcciones.
 | Pieza | Estado |
 |---|---|
 | `contracts/` | completo: esquemas, ejemplos, catálogo de rechazos y validador en CI |
-| `analytics-scala/` | **completo de punta a punta**: modelo, analizadores, reglas y endpoints. 47 pruebas |
+| `analytics-scala/` | completo para `racing` y `combat`, 48 pruebas. Faltan `blackjack`, `battleship`, el `GenericAnalyzer` y las globales |
 | `ingest-go/` | esqueleto: valida el sobre del evento y responde `/health`. **Tuyo** |
-| `simulator/` | **completo**: genera el flujo, dispara todas las reglas, 19 pruebas. Mío |
+| `simulator/` | funciona (Python, 2 juegos, 19 pruebas) pero **se reescribe en Go** y debe cubrir los 4. Mío |
 | Docker + compose + CI | funcionando, los cuatro checks en verde. **Tuyos** |
 
 Lo que falta para la demo es **solo tu módulo de Go**: ingestión, estado por partida, goroutines y
@@ -265,7 +289,7 @@ De la tabla del `CLAUDE.md`, lo que sigue en ⬜:
 
 | # | Decisión | Quién |
 |---|---|---|
-| 1 | Los dos juegos: carreras + combate | ambos |
+| 1 | Los juegos elegidos (ver tambien la 12) | ambos |
 | 2 | Tipos de evento y campos de `data` por juego | ambos |
 | 4 | Go→Scala por HTTP/JSON con `POST /analyze` | ambos |
 | 5 | Cuándo envía Go una partida | vos |
@@ -274,6 +298,11 @@ De la tabla del `CLAUDE.md`, lo que sigue en ⬜:
 | 9a | Go 1.24 con solo biblioteca estándar | vos |
 | 10 | Repo, CI y deployment | vos |
 | 11 | Reparto y ritmo | ambos |
+| 12 | Los cuatro juegos | ambos |
+| 13 | `matchMode` y `playerType` | ambos |
+| 14 | Formatos de blackjack y battleship | ambos |
+| 15 | Desconexiones y la ventana de 60 s | ambos |
+| 16 | `GET /metrics` en Go | **vos** |
 
 Las 3, 7 y 9b ya están cerradas: son las mías y están implementadas.
 
@@ -308,7 +337,26 @@ concreto a favor de generar datos variados: los ejemplos del contrato tienen poc
 destapaban el caso. Si en tu módulo tenés lógica de ventanas o secuencias, vale la pena pasarle el
 simulador.
 
+### Las decisiones nuevas, en concreto
+
+Las 12 a 15 son del contrato y por eso las aprobamos los dos. Las propuse yo con valores concretos
+para que podamos discutir sobre algo escrito, igual que en la Fase 0:
+
+- **Carta** (`blackjack`): `"10H"`, `"AS"`, `"KD"` — rango y palo pegados.
+- **`to`** en `CARD_DEALT`: el `playerId` de quien recibe la carta, para distinguir la mano del
+  jugador de la del crupier.
+- **`outcome`**: `WIN`, `LOSE`, `PUSH`, `BLACKJACK`, `BUST`. **`payout`** con signo, negativo si
+  perdió.
+- **`coord`** (`battleship`): `"A1"` a `"J10"`, tablero de 10×10.
+- **Reconexión**: vuelve en **≤ 60 s**. Si no vuelve, abandono.
+- **`reconnect_without_disconnect`**: razón de rechazo nueva y **opcional**. Si preferís no llevar
+  ese estado en Go, la sacamos del contrato y del ejemplo; te toca a vos decidirlo.
+
+La **16** es enteramente tuya: `GET /metrics` con eventos recibidos, válidos, inválidos por razón de
+rechazo y partidas activas. Son métricas de la ingestión, no de los juegos — Go sigue sin saber qué
+es una vuelta.
+
 ### Lo que sigue de mi lado
 
-Nada del reparto. Quedo disponible para la integración, la demo y el documento final de
-justificación de paradigmas, que es de los dos.
+Los analizadores de `blackjack` y `battleship`, el `GenericAnalyzer`, las estadísticas globales y el
+simulador en Go. Más el documento de justificación de paradigmas, que es de los dos.
