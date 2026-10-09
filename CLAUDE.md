@@ -97,6 +97,8 @@ Van en `data` y no en el sobre porque el sobre es común a los diecisiete tipos 
 
 ## Juegos elegidos (propuesta; confirmar en Fase 0)
 
+**El mínimo de cuatro juegos es una indicación verbal del profesor, no está en el enunciado escrito.** `docs/enunciado.md` §5 dice "uno o varios tipos de juegos" y no fija un mínimo; el profesor dijo en clase que esperaba al menos 4. No hay contradicción, pero el número no se puede citar del documento: si lo preguntan en la defensa, la fuente es la clase.
+
 Cuatro juegos de forma deliberadamente distinta, para demostrar que el núcleo es genérico. Dos de ellos (`blackjack` y `battleship`) son Jugador vs Máquina, y `combat` puede serlo. El detalle de los eventos y el porqué de cada uno está en `contracts/events.md`.
 
 Cada juego tiene **al menos tres estadísticas y una regla de secuencia**, que es lo que piden los puntos 6 a 9 del enunciado §9.
@@ -338,3 +340,7 @@ curl http://localhost:8081/health   # análisis
 
 El enunciado §14 dice "Fecha de entrega: domingo 18 de Setiembre de 2026", una fecha que ya pasó.
 Es un error de tipeo en el documento del curso. **Confirmar la fecha real con el profesor.**
+
+El mínimo de **4 juegos** también es verbal y no está en `docs/enunciado.md`. Vale la pena pedirle
+al profesor que lo confirme por escrito, aunque sea en un correo: es el requisito que más trabajo
+agregó al proyecto y ahora mismo no hay dónde señalarlo. En la misma consulta entra la fecha.

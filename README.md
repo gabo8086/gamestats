@@ -27,8 +27,9 @@ una partida, calcula las estadísticas y las reglas, y expone los resultados. El
 sigue en esqueleto, respondiendo solo `/health`.
 
 El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos preparados para
-Jugador vs Máquina. El contrato ya está actualizado; los analizadores de `blackjack` y `battleship`
-están por escribir.
+Jugador vs Máquina. Es una indicación **verbal** del profesor: `docs/enunciado.md` §5 no fija un
+mínimo. El contrato ya está actualizado; los analizadores de `blackjack` y `battleship` están por
+escribir.
 
 Las decisiones de diseño están en la tabla de [`CLAUDE.md`](CLAUDE.md) y **casi ninguna está
 aprobada todavía**: Samuel tiene que revisarlas.

@@ -16,6 +16,12 @@ no la fuente de verdad.
 **9 de octubre de 2026.** El sistema pasa de 2 a **4 juegos**, y dos de ellos tienen que quedar
 preparados para un modo Jugador vs Máquina que no se implementa en este proyecto.
 
+**De dónde sale esto:** el profesor lo dijo **verbalmente**, que espera al menos 4 juegos. No está
+en `docs/enunciado.md`, que en su §5 sigue diciendo "uno o varios tipos de juegos". No se
+contradicen —el enunciado escrito no pone un mínimo y la indicación verbal sí— pero conviene que lo
+tengamos claro los dos: si en la defensa preguntan de dónde sale el número, la respuesta es que lo
+pidió él en clase, no que lo leímos. Y como dijo "al menos 4", con cuatro cumplimos.
+
 Los juegos son `racing` (igual que antes), `combat` (ahora puede tener bots), `blackjack` (contra el
 crupier) y `battleship` (contra la máquina).
 
