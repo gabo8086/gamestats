@@ -33,7 +33,7 @@ sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 | `GameAnalyzer.scala` | el trait, el sobre común del resultado y el registro de juegos |
 | `RacingAnalyzer.scala` | estadísticas y remontada de carreras |
 | `CombatAnalyzer.scala` | estadísticas, racha y venganza de combate |
-| *(pendiente)* `BlackjackAnalyzer.scala` | % de victorias, saldo, apuesta promedio, % de bust; regla `tilt` |
+| `BlackjackAnalyzer.scala` | % de victorias, saldo, apuesta promedio, % de bust; regla `tilt` |
 | *(pendiente)* `BattleshipAnalyzer.scala` | precisión y barcos hundidos; regla `hitStreak` |
 | *(pendiente)* `GenericAnalyzer.scala` | lo que sale solo del sobre, sin conocer el juego |
 | `ResultStore.scala` | lo analizado hasta ahora, en memoria |

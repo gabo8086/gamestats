@@ -27,11 +27,12 @@ class AnalyzerSuite extends munit.FunSuite:
 
   // ---------------------------------------------------------------- registro
 
-  test("el registro resuelve los dos juegos y nada mas"):
+  test("el registro resuelve los juegos declarados y nada mas"):
     assertEquals(GameAnalyzer.para("racing"), Some(RacingAnalyzer))
     assertEquals(GameAnalyzer.para("combat"), Some(CombatAnalyzer))
+    assertEquals(GameAnalyzer.para("blackjack"), Some(BlackjackAnalyzer))
     assertEquals(GameAnalyzer.para("ajedrez"), None)
-    assertEquals(GameAnalyzer.conocidos, List("combat", "racing"))
+    assertEquals(GameAnalyzer.conocidos, List("blackjack", "combat", "racing"))
 
   // ---------------------------------------------------------------- carreras
 

@@ -63,7 +63,7 @@ object GameAnalyzer:
 
   /** El registro. Agregar un juego es agregar una linea aqui. */
   private val registrados: Map[String, GameAnalyzer] =
-    List(RacingAnalyzer, CombatAnalyzer).map(a => a.gameId -> a).toMap
+    List(RacingAnalyzer, CombatAnalyzer, BlackjackAnalyzer).map(a => a.gameId -> a).toMap
 
   def para(gameId: String): Option[GameAnalyzer] = registrados.get(gameId)
 
