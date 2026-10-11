@@ -31,8 +31,9 @@ class AnalyzerSuite extends munit.FunSuite:
     assertEquals(GameAnalyzer.para("racing"), Some(RacingAnalyzer))
     assertEquals(GameAnalyzer.para("combat"), Some(CombatAnalyzer))
     assertEquals(GameAnalyzer.para("blackjack"), Some(BlackjackAnalyzer))
+    assertEquals(GameAnalyzer.para("battleship"), Some(BattleshipAnalyzer))
     assertEquals(GameAnalyzer.para("ajedrez"), None)
-    assertEquals(GameAnalyzer.conocidos, List("blackjack", "combat", "racing"))
+    assertEquals(GameAnalyzer.conocidos, List("battleship", "blackjack", "combat", "racing"))
 
   // ---------------------------------------------------------------- carreras
 
