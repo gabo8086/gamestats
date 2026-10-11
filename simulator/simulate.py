@@ -159,7 +159,7 @@ def carrera_con_remontada(nuevo_id: Contador, match_id: str, inicio: datetime) -
         vuelta 3   p3 238000 (1.o)  p2 246000 (2.o)  p1 250000 (3.o)
 
     p3 estuvo en la ultima posicion (position == 3 == numero de jugadores) y gana por tiempo
-    ajustado: es exactamente la definicion de remontada del CLAUDE.md.
+    ajustado: es exactamente la definicion de remontada de docs/diseno.md.
     """
     return partida_de_carreras(
         nuevo_id, match_id, inicio,

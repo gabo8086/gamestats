@@ -2,7 +2,7 @@ package gamestats.analytics
 
 /** Analizador de carreras.
   *
-  * Las definiciones son las cerradas en el CLAUDE.md:
+  * Las definiciones son las cerradas en docs/diseno.md:
   *
   *   - **tiempo ajustado** = suma de `lapTimeMs` + `seconds` de las penalizaciones x 1000. Es la
   *     estadistica que combina dos tipos de evento distintos, y es la que define al ganador.
@@ -113,7 +113,7 @@ object RacingAnalyzer extends GameAnalyzer:
   /** Remontada: el ganador estuvo en la ultima posicion en alguna vuelta.
     *
     * La ultima posicion es `position == numero de jugadores`. Se mira solo al ganador porque la
-    * definicion del CLAUDE.md exige las dos cosas a la vez: haber estado ultimo y haber ganado.
+    * definicion de docs/diseno.md exige las dos cosas a la vez: haber estado ultimo y haber ganado.
     */
   protected def patrones(lote: Batch): List[Pattern] =
     val total = lote.jugadores.size

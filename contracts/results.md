@@ -2,7 +2,7 @@
 
 > **Estado: implementado para `racing` y `combat`; propuesta para `blackjack`, `battleship` y las estadísticas de
 > plataforma.** Con el reparto vigente el módulo Scala es de Gabriel, así que la forma la decide él, pero esto vive en
-> `contracts/` y los cambios necesitan el acuerdo de los dos. Lo nuevo son las decisiones 12 a 15 del `CLAUDE.md`.
+> `contracts/` y los cambios necesitan el acuerdo de los dos. Lo nuevo son las decisiones 12 a 15 del `docs/diseno.md`.
 
 ## Principio de diseño
 
