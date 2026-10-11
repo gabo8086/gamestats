@@ -1,21 +1,29 @@
 // Modulo de ingestion de GameStats (paradigma imperativo/concurrente).
 //
-// Estado: esqueleto de la Fase 0. Solo levanta el servidor y responde /health, lo justo para que
-// docker compose y el CI tengan algo que verificar. Lo que falta, en orden (ver CLAUDE.md):
+// Este archivo es solo el borde HTTP: configuracion, rutas y traduccion entre JSON y el
+// despachador. La logica vive en internal/contract (validacion del sobre) e internal/ingest
+// (estado por partida, goroutines y envio a Scala).
 //
-//	Dia 1: POST /events -> validacion del sobre y catalogo de rechazos (contracts/rejections.md).
-//	Dia 2: una goroutine por partida, con un despachador que enruta por matchId a traves de channels,
-//	       y el estado por partida (jugadores activos, eventos acumulados, si inicio/termino).
-//	Dia 3: al llegar MATCH_FINISHED, ordenar los eventos por timestamp y hacer POST /analyze a Scala.
+//	POST /events   uno o varios eventos; responde cuantos se aceptaron y por que se rechazo el resto
+//	GET  /metrics  metricas de la ingestion
+//	GET  /health   para docker compose y el CI
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"gamestats/ingest/internal/contract"
+	"gamestats/ingest/internal/ingest"
 )
+
+// maxBodyBytes limita el cuerpo de POST /events. Sobra para cualquier partida simulada.
+const maxBodyBytes = 10 << 20
 
 // config es todo lo que el modulo lee del entorno. Dentro de docker compose los servicios se
 // llaman por nombre, nunca localhost: de ahi el valor por defecto de analyticsURL.
@@ -38,7 +46,7 @@ func envOr(clave, porDefecto string) string {
 	return porDefecto
 }
 
-func newMux(cfg config) *http.ServeMux {
+func newMux(d *ingest.Dispatcher) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// /health existe para el CI y para los healthchecks de docker compose.
@@ -49,15 +57,54 @@ func newMux(cfg config) *http.ServeMux {
 		})
 	})
 
-	// Declarado aqui para que el contrato de la API sea visible desde la Fase 0, aunque la
-	// implementacion llegue el Dia 1.
 	mux.HandleFunc("POST /events", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusNotImplemented, map[string]string{
-			"error": "POST /events todavia no esta implementado (Dia 1)",
-		})
+		cuerpo, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxBodyBytes))
+		if err != nil {
+			writeJSON(w, http.StatusRequestEntityTooLarge, map[string]string{"error": err.Error()})
+			return
+		}
+
+		respuesta := eventsResponse{Rejected: []contract.Rejection{}}
+		for _, raw := range splitEvents(cuerpo) {
+			if rej := d.Ingest(raw); rej != nil {
+				respuesta.Rejected = append(respuesta.Rejected, *rej)
+			} else {
+				respuesta.Accepted++
+			}
+		}
+
+		// contracts/rejections.md: 200 si se acepto al menos uno; 400 si no entro ninguno.
+		status := http.StatusOK
+		if respuesta.Accepted == 0 && len(respuesta.Rejected) > 0 {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, respuesta)
+	})
+
+	mux.HandleFunc("GET /metrics", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, d.Metrics())
 	})
 
 	return mux
+}
+
+// eventsResponse es la respuesta de POST /events (contracts/rejections.md).
+type eventsResponse struct {
+	Accepted int                  `json:"accepted"`
+	Rejected []contract.Rejection `json:"rejected"`
+}
+
+// splitEvents acepta un evento suelto (lo que manda el simulador, uno por peticion) o un arreglo
+// de eventos. Si el cuerpo no es un arreglo JSON valido se devuelve entero como un solo evento, y
+// la validacion lo rechaza con malformed_json.
+func splitEvents(cuerpo []byte) []json.RawMessage {
+	if bytes.HasPrefix(bytes.TrimSpace(cuerpo), []byte("[")) {
+		var varios []json.RawMessage
+		if err := json.Unmarshal(cuerpo, &varios); err == nil {
+			return varios
+		}
+	}
+	return []json.RawMessage{cuerpo}
 }
 
 func writeJSON(w http.ResponseWriter, status int, cuerpo any) {
@@ -73,7 +120,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.port,
-		Handler:           newMux(cfg),
+		Handler:           newMux(ingest.NewDispatcher(ingest.HTTPSender(cfg.analyticsURL))),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

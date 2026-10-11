@@ -36,6 +36,9 @@ func TestEjemplosDecodificanEnElSobre(t *testing.T) {
 	}{
 		{"racing-match-ok.json", 15, "racing"},
 		{"combat-match-ok.json", 12, "combat"},
+		{"combat-vs-bot-match-ok.json", 14, "combat"},
+		{"blackjack-match-ok.json", 47, "blackjack"},
+		{"battleship-match-ok.json", 18, "battleship"},
 	}
 
 	for _, c := range casos {
@@ -136,5 +139,78 @@ func TestDecodeEventAceptaUnEventoDelContrato(t *testing.T) {
 	}
 	if _, err := DecodeEvent(raw); err != nil {
 		t.Errorf("DecodeEvent rechazo un evento valido: %v", err)
+	}
+}
+
+// Cada caso de invalid-events.json que el esquema puede detectar (validAgainstSchema: false) tiene
+// que salir de Parse con exactamente la razon esperada. Los demas necesitan el estado de la
+// partida y se prueban en el paquete ingest.
+func TestParseDaLaRazonDeCadaCasoInvalido(t *testing.T) {
+	raw, err := os.ReadFile(examplePath("invalid-events.json"))
+	if err != nil {
+		t.Fatalf("no se pudo leer invalid-events.json: %v", err)
+	}
+
+	var archivo struct {
+		Cases []struct {
+			ExpectedReason     string          `json:"expectedReason"`
+			Note               string          `json:"note"`
+			ValidAgainstSchema bool            `json:"validAgainstSchema"`
+			Event              json.RawMessage `json:"event"`
+		} `json:"cases"`
+	}
+	if err := json.Unmarshal(raw, &archivo); err != nil {
+		t.Fatalf("no se pudo decodificar invalid-events.json: %v", err)
+	}
+
+	for _, caso := range archivo.Cases {
+		t.Run(caso.Note, func(t *testing.T) {
+			_, rej := Parse(caso.Event)
+			if caso.ValidAgainstSchema {
+				if rej != nil {
+					t.Fatalf("el sobre es valido y Parse lo rechazo con %q", rej.Reason)
+				}
+				return
+			}
+			if rej == nil {
+				t.Fatalf("Parse acepto el evento; se esperaba %q", caso.ExpectedReason)
+			}
+			if rej.Reason != caso.ExpectedReason {
+				t.Errorf("razon = %q, se esperaba %q", rej.Reason, caso.ExpectedReason)
+			}
+			if rej.EventID == "" {
+				t.Error("el rechazo no dice de que evento se trata")
+			}
+		})
+	}
+}
+
+func TestParseRechazaJSONMalFormado(t *testing.T) {
+	for _, cuerpo := range []string{`{"eventId": "e-1",`, `no es json`, `[1, 2]`, `42`} {
+		_, rej := Parse([]byte(cuerpo))
+		if rej == nil || rej.Reason != ReasonMalformedJSON {
+			t.Errorf("Parse(%q) = %+v, se esperaba %q", cuerpo, rej, ReasonMalformedJSON)
+		}
+	}
+}
+
+func TestParseDiceQueCampoSobra(t *testing.T) {
+	_, rej := Parse([]byte(`{"eventId":"e-1","extra":1}`))
+	if rej == nil || rej.Reason != ReasonUnknownField || rej.Detail != "extra" {
+		t.Errorf("rechazo = %+v, se esperaba unknown_field con detail \"extra\"", rej)
+	}
+}
+
+// playerId puede faltar en los MATCH_*, pero no puede ser cadena vacia en los demas.
+func TestParsePlayerID(t *testing.T) {
+	base := `{"eventId":"e-1","timestamp":"2026-10-05T14:00:00Z","gameId":"racing",` +
+		`"gameVersion":"1.0","matchId":"m-1",`
+
+	if _, rej := Parse([]byte(base + `"type":"MATCH_FINISHED"}`)); rej != nil {
+		t.Errorf("MATCH_FINISHED sin playerId rechazado: %+v", rej)
+	}
+	_, rej := Parse([]byte(base + `"type":"PENALTY","playerId":""}`))
+	if rej == nil || rej.Reason != ReasonMissingPlayerID {
+		t.Errorf("rechazo = %+v, se esperaba %q", rej, ReasonMissingPlayerID)
 	}
 }
