@@ -24,7 +24,9 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 
 **En desarrollo.** El módulo de análisis está completo para `racing` y `combat`: recibe el lote de
 una partida, calcula las estadísticas y las reglas, y expone los resultados. El módulo de ingestión
-sigue en esqueleto, respondiendo solo `/health`.
+está completo: recibe y valida eventos en `POST /events`, mantiene el estado de cada partida en su
+propia goroutine, manda el lote a Scala al recibir `MATCH_FINISHED` y expone `GET /metrics`. El
+detalle está en [`ingest-go/README.md`](ingest-go/README.md).
 
 El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos preparados para
 Jugador vs Máquina. Es una indicación **verbal** del profesor: `docs/enunciado.md` §5 no fija un
@@ -67,6 +69,11 @@ Dockerfiles.
 docker compose up --build
 curl http://localhost:8080/health    # ingestión (Go)
 curl http://localhost:8081/health    # análisis (Scala)
+
+# Mandar el flujo del simulador a Go y ver qué entró
+python3 simulator/simulate.py --post http://localhost:8080 --delay-ms 0 --no-files
+curl http://localhost:8080/metrics
+curl http://localhost:8081/results/matches/m-sim-racing-comeback
 ```
 
 Dentro de Compose los servicios se llaman por nombre (`http://analytics:8081`), nunca `localhost`:
@@ -75,7 +82,7 @@ cada contenedor tiene su propio `localhost`.
 ### Por módulo
 
 ```bash
-cd ingest-go       && go vet ./... && go test ./... && go build ./...
+cd ingest-go       && go vet ./... && go test -race ./... && go build ./...
 cd analytics-scala && sbt test
 ```
 
