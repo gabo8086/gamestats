@@ -6,7 +6,7 @@ porqué de cada cosa. La idea es que no tengas que reconstruirlo leyendo commits
 Está ordenado de lo más importante a lo más detallado. **Si solo vas a leer una sección, que sea
 "Lo que necesito de vos"**, al final.
 
-Todo lo que digo acá está también en el `CLAUDE.md` y en los README de cada módulo; esto es el mapa,
+Todo lo que digo acá está también en el `docs/diseno.md` y en los README de cada módulo; esto es el mapa,
 no la fuente de verdad.
 
 ---
@@ -43,7 +43,7 @@ con el contrato nuevo. Agregar dos juegos son dos archivos nuevos y dos líneas 
 
 ## 1. Intercambiamos roles
 
-Lo pediste vos y ya está aplicado en el `CLAUDE.md`:
+Lo pediste vos y ya está aplicado en el `docs/diseno.md`:
 
 | | Antes | Ahora |
 |---|---|---|
@@ -54,7 +54,7 @@ Una consecuencia que conviene tener presente: **el andamiaje de `ingest-go/` lo 
 del intercambio. Es el punto de partida de tu módulo, no una especificación. Si algo de cómo está
 armado no te gusta, cambialo sin consultarme.
 
-En la tabla de decisiones del `CLAUDE.md` agregué una letra nueva en la columna "Aprueba":
+En la tabla de decisiones del `docs/diseno.md` agregué una letra nueva en la columna "Aprueba":
 
 - **A** = ambos, porque toca el contrato compartido o el reparto
 - **G** = la decido yo (Scala, análisis, simulador, pruebas)
@@ -165,7 +165,7 @@ justo lo que queremos evitar. Los tipos generales (`MATCH_STARTED`, `PLAYER_JOIN
 ### El estado, sin romper las reglas de estilo
 
 El módulo tiene que recordar lo que analizó para responder los `GET /results/...`. O sea que hay
-estado, y el `CLAUDE.md` dice "sin `var`, sin colecciones mutables".
+estado, y el `docs/diseno.md` dice "sin `var`, sin colecciones mutables".
 
 Lo resolví con un `AtomicReference` que apunta a un `Map` **inmutable**: lo único mutable es la
 referencia, que se cambia de golpe con `updateAndGet`. No hay `var`, no hay colección mutable, y dos
@@ -191,7 +191,7 @@ lugares, que es lo que hace fallar las pruebas de integración por un decimal.
 
 ## 5. Las estadísticas y las reglas que implementé
 
-Las definiciones son las que ya estaban cerradas en el `CLAUDE.md`. Las implementé tal cual y
+Las definiciones son las que ya estaban cerradas en el `docs/diseno.md`. Las implementé tal cual y
 **verifiqué los resultados contra los ejemplos del contrato calculándolos por fuera**, en Python,
 antes de escribir las aserciones — para no estar comprobando mi implementación contra sí misma.
 Salen idénticos a los de `contracts/results.md`.
@@ -249,7 +249,7 @@ Estas son tuyas ahora; las listo para que sepas qué heredaste.
 
 ### Una decisión que cambié sobre la marcha
 
-El `CLAUDE.md` decía originalmente que mergear requeriría **una aprobación**. Lo saqué: con dos
+El `docs/diseno.md` decía originalmente que mergear requeriría **una aprobación**. Lo saqué: con dos
 personas, exigirla deja a cualquiera bloqueado esperando al otro a horas en las que el otro no está.
 El ruleset pide PR y CI en verde, pero `Required approvals: 0`.
 
@@ -265,13 +265,13 @@ Te las digo yo para que no las descubras vos:
 
 1. **`contracts/results.md` dice "Estado: propuesta — pendiente de revisión de Samuel"** en el
    encabezado. Eso es de cuando Scala era tuyo. Ahora el módulo es mío y ese documento describe lo
-   que ya está implementado. No lo toqué porque el `CLAUDE.md` dice que `contracts/` no se cambia
+   que ya está implementado. No lo toqué porque el `docs/diseno.md` dice que `contracts/` no se cambia
    sin pedirlo explícitamente. **¿Lo corrijo?**
 
 2. **La fecha de entrega.** El enunciado §14 dice "domingo 18 de Setiembre de 2026", una fecha que
    ya pasó. Sigue sin confirmarse con el profesor.
 
-3. **La lista de entregables del `CLAUDE.md`** no está actualizada con lo que ya se hizo estos días.
+3. **La lista de entregables del `docs/diseno.md`** no está actualizada con lo que ya se hizo estos días.
 
 4. **Un detalle cosmético:** upickle escribe los `Double` enteros sin el `.0`, así que donde
    `results.md` muestra `"avgLapMs": 82000.0` la salida real dice `82000`. Es el mismo número en
@@ -291,7 +291,7 @@ Te las digo yo para que no las descubras vos:
 
 ### Decisiones que faltan aprobar
 
-De la tabla del `CLAUDE.md`, lo que sigue en ⬜:
+De la tabla del `docs/diseno.md`, lo que sigue en ⬜:
 
 | # | Decisión | Quién |
 |---|---|---|

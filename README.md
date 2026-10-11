@@ -33,7 +33,7 @@ Jugador vs Máquina. Es una indicación **verbal** del profesor: `docs/enunciado
 mínimo. El contrato ya está actualizado; los analizadores de `blackjack` y `battleship` están por
 escribir.
 
-Las decisiones de diseño están en la tabla de [`CLAUDE.md`](CLAUDE.md) y **casi ninguna está
+Las decisiones de diseño están en la tabla de [`diseno.md`](docs/diseno.md) y **casi ninguna está
 aprobada todavía**: Samuel tiene que revisarlas.
 
 ## Estructura
@@ -116,20 +116,21 @@ distribución de eventos, actividad por minuto, perfil global del jugador, ranki
 desconexiones y win rate contra bots frente a contra humanos.
 
 El catálogo de eventos y su justificación está en [`contracts/events.md`](contracts/events.md), el
-detalle de cada estadística en [`CLAUDE.md`](CLAUDE.md), y la forma exacta de la salida en
+detalle de cada estadística en [`diseno.md`](docs/diseno.md), y la forma exacta de la salida en
 [`contracts/results.md`](contracts/results.md).
 
 ## Documentación
 
 | Archivo | Qué contiene |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | decisiones de diseño, definiciones precisas, reparto de trabajo |
+| [`diseno.md`](docs/diseno.md) | decisiones de diseño, definiciones precisas, reparto de trabajo |
 | [`contracts/event.schema.json`](contracts/event.schema.json) | el sobre común del evento |
 | [`contracts/events.md`](contracts/events.md) | catálogo de tipos de evento por juego y su justificación |
 | [`ParaSamuel.md`](ParaSamuel.md) | resumen de todas las decisiones tomadas, con el porqué |
 | [`contracts/batch.schema.json`](contracts/batch.schema.json) | el lote que Go envía a Scala |
 | [`contracts/results.md`](contracts/results.md) | forma del JSON de resultados |
 | [`contracts/rejections.md`](contracts/rejections.md) | razones de rechazo de eventos |
+| [`docs/paradigmas.md`](docs/paradigmas.md) | qué va en imperativo y qué en funcional, con ventajas y limitaciones |
 | [`docs/enunciado.md`](docs/enunciado.md) | enunciado del curso (el `.docx` original está al lado) |
 
 ## Entrega

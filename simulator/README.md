@@ -2,7 +2,7 @@
 
 > **Responsable: Gabriel.** Pasó a este lado con el intercambio de roles del 3 de octubre de 2026.
 >
-> ⚠️ **Este simulador se va a reemplazar por uno en Go** (decisión 17 del `CLAUDE.md`, 9 de octubre
+> ⚠️ **Este simulador se va a reemplazar por uno en Go** (decisión 17 del `docs/diseno.md`, 9 de octubre
 > de 2026). El de Python que está aquí cubre dos juegos y sigue funcionando; se mantiene hasta que
 > el de Go exista, para no dejar el repo sin forma de probar el análisis. El borrado va en el PR que
 > traiga el reemplazo.

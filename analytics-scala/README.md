@@ -116,7 +116,7 @@ partida.
 
 ## Reglas de estilo
 
-Del `CLAUDE.md` de la raíz: sin `var`, sin colecciones mutables, sin `null`, `sealed trait` y case
+Del `docs/diseno.md`: sin `var`, sin colecciones mutables, sin `null`, `sealed trait` y case
 classes para el modelo, `Option` / `Either` en vez de excepciones, y el análisis en funciones puras.
 
 ## Versiones
@@ -142,7 +142,7 @@ Las alternativas que se consideraron:
 **El argumento principal: el paradigma funcional de este proyecto vive en el análisis, no en el
 transporte.** Lo que el curso evalúa son las transformaciones sobre colecciones inmutables —
 `filter`, `map`, `groupBy`, `fold` — y esas son idénticas se reciban los bytes como se reciban. El
-`CLAUDE.md` ya establece que el IO queda aislado en los bordes; http4s llevaría la mónada `IO` a ese
+`docs/diseno.md` ya establece que el IO queda aislado en los bordes; http4s llevaría la mónada `IO` a ese
 borde, que es varios días de conceptos nuevos sin mejorar la parte que sí se evalúa.
 
 **Por qué no JSON a mano:** upickle deriva los codecs en tiempo de compilación con `derives

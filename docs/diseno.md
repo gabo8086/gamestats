@@ -1,7 +1,10 @@
-# GameStats — Contexto del proyecto
+# GameStats — Diseño del sistema
 
 Proyecto 1 del curso **Lenguajes de Programación**. Grupo de 2: **Gabriel** y **Samuel**.
-El enunciado completo está en `docs/enunciado.md`. Si algo de este archivo contradice el enunciado, manda el enunciado.
+
+Este documento es el registro de diseño del proyecto: qué hace cada módulo, el contrato entre ellos, las definiciones exactas de cada estadística y cada regla, el reparto de trabajo y la tabla de decisiones con su estado.
+
+El enunciado completo está en [`enunciado.md`](enunciado.md). Si algo de este archivo lo contradice, manda el enunciado.
 
 ## Objetivo y filosofía
 
@@ -25,8 +28,7 @@ Los roles se intercambiaron el 3 de octubre de 2026, a pedido de Samuel: antes G
 
 El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos de ellos preparados para Jugador vs Máquina. El reparto no cambió de dueños: Gabriel suma los dos analizadores nuevos, el `GenericAnalyzer` y las estadísticas globales; Samuel suma `GET /metrics`. Lo único que cambia de forma es el **simulador, que se reescribe en Go** sin dejar de ser de Gabriel: el lenguaje no sigue al dueño. Hasta que ese reemplazo exista, el simulador en Python que está en `simulator/` sigue siendo el que funciona.
 
-Cada quien trabaja en sus carpetas para evitar conflictos de merge. Cambios en `contracts/` requieren aprobación de ambos.
-Claude Code: si te piden algo fuera de las carpetas de quien te habla, avisa antes de tocarlo.
+Cada quien trabaja en sus carpetas para evitar conflictos de merge. Cambios en `contracts/` requieren aprobación de ambos: nadie toca la carpeta del otro sin avisar.
 
 ## Arquitectura
 
@@ -157,9 +159,9 @@ Salida: archivos JSON y/o envío a `POST /events`. Los datos de racing deben ser
 
 ## Fase 0 — Diseño conjunto (antes de programar)
 
-Gabriel prepara la Fase 0 con Claude Code y la entrega a Samuel como **un único PR** (contratos, ejemplos, módulos vacíos, CI y esta tabla). **Samuel lo revisa y lo aprueba antes de que empiece el Día 1.** Nadie programa módulos hasta que ese PR esté mergeado, porque todo lo demás depende de estas decisiones.
+Gabriel preparó la Fase 0 y la entregó a Samuel como **un único PR** (contratos, ejemplos, módulos vacíos, CI y esta tabla), porque todo lo demás depende de estas decisiones.
 
-En esta fase Claude Code **ayuda a redactar y a señalar huecos o contradicciones, pero no decide por ellos**. El andamiaje lo redactó Gabriel; con el intercambio de roles, las decisiones que afectan al módulo Go, a Docker o al CI (cuándo se envía una partida, casos límite, puertos, deployment) quedan **pendientes de revisión de Samuel**, y las del contrato las aprueban los dos.
+Con el intercambio de roles, las decisiones que afectan al módulo Go, a Docker o al CI (cuándo se envía una partida, casos límite, puertos, deployment) quedan **pendientes de revisión de Samuel**, y las del contrato las aprueban los dos.
 
 Lo propuesto en este archivo es el punto de partida. Marcar cada decisión como ✅ cuando quien corresponda la haya aprobado en el PR.
 
@@ -250,7 +252,7 @@ simulator/                 # carpeta vacía con README
 docker-compose.yml         # servicios declarados aunque sean mínimos
 .github/workflows/ci.yml   # compila ambos módulos en cada PR
 docs/enunciado.md
-CLAUDE.md                  # este archivo con la tabla de decisiones en ✅
+docs/diseno.md             # este archivo, con la tabla de decisiones en ✅
 ```
 
 Además: `main` protegida (PR obligatorio, los cuatro checks del CI en verde, sin force push) y cada quien con acceso de escritura al repo.
@@ -313,16 +315,15 @@ curl http://localhost:8080/health   # ingestión
 curl http://localhost:8081/health   # análisis
 ```
 
-## Cómo debe trabajar Claude Code aquí
+## Convenciones de trabajo
 
-- Lee `docs/enunciado.md` y este archivo antes de proponer cambios grandes.
-- Si falta una decisión de diseño que afecta el contrato, **pregunta** en vez de inventarla.
-- No cambies `contracts/` sin que se pida explícitamente.
-- Escribe pruebas junto con el código (Go: `testing`; Scala: MUnit).
-- Explica brevemente las decisiones importantes: los estudiantes deben poder **defender cada línea** en la demo.
+- Si falta una decisión de diseño que afecta el contrato, se discute antes de implementarla: no se inventa sobre la marcha.
+- `contracts/` no se cambia sin acuerdo de los dos.
+- Las pruebas se escriben junto con el código (Go: `testing`; Scala: MUnit).
+- Las decisiones importantes van explicadas en el código o en el README del módulo: hay que poder **defender cada línea** en la demo.
 - Identificadores de código en inglés; documentación y comentarios en español.
-- No agregues dependencias sin justificar por qué la biblioteca estándar no alcanza.
-- Nunca hagas push a `main` ni fuerces pushes.
+- No se agregan dependencias sin justificar por qué la biblioteca estándar no alcanza.
+- Nunca se hace push directo a `main` ni push forzado.
 
 ## Entregables (checklist del enunciado)
 
@@ -334,7 +335,7 @@ curl http://localhost:8081/health   # análisis
 - [x] Configuración del pipeline CI/CD — falta la parte de deployment (Fase 3)
 - [ ] Documentación de instalación, ejecución y deployment — `README.md` cubre instalación y ejecución
 - [ ] Demo funcional
-- [ ] Justificación de qué va en imperativo (Go) y qué en funcional (Scala), con ventajas y limitaciones de cada enfoque
+- [x] Justificación de qué va en imperativo (Go) y qué en funcional (Scala), con ventajas y limitaciones de cada enfoque — [`paradigmas.md`](paradigmas.md)
 
 ## Pendiente administrativo
 

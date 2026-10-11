@@ -7,7 +7,7 @@ package gamestats.analytics
   * apareciendo como victima en los de otros: es el caso tipico de estadistica que obliga a cruzar
   * el sobre con el `data`.
   *
-  * Definiciones cerradas en el CLAUDE.md:
+  * Definiciones cerradas en docs/diseno.md:
   *
   *   - **K/D** = eliminaciones / muertes. Con 0 muertes devuelve las eliminaciones y marca
   *     `kdUndefined: true`, para no confundir "3 sin morir" con "K/D de 3.0".
