@@ -55,5 +55,9 @@ object EventType:
   val PlayerJoined: String  = "PLAYER_JOINED"
   val MatchFinished: String = "MATCH_FINISHED"
 
+  /** Valores de `PLAYER_JOINED.data.playerType`. */
+  val Human: String = "HUMAN"
+  val Bot: String   = "BOT"
+
   /** Los eventos `MATCH_*` son los que pueden venir sin `playerId`. */
   def esDePartida(tipo: String): Boolean = tipo.startsWith("MATCH_")

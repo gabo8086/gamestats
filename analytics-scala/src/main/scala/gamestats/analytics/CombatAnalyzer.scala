@@ -26,17 +26,33 @@ object CombatAnalyzer extends GameAnalyzer:
   private def ms(evento: Event): Option[Long] =
     Tiempo.instante(evento.timestamp).map(_.toEpochMilli)
 
-  private final case class Luchador(playerId: String, eliminaciones: List[Event], muertes: List[Event]):
-    val danos: List[Double]        = eliminaciones.flatMap(_.num("damage"))
+  private final case class Luchador(
+      playerId: String,
+      eliminaciones: List[Event],
+      muertes: List[Event],
+      esBot: String => Boolean
+  ):
+    val danos: List[Double]          = eliminaciones.flatMap(_.num("damage"))
     val danoPromedio: Option[Double] = Numeros.promedio(danos)
-    val kdIndefinido: Boolean      = muertes.isEmpty
+    val kdIndefinido: Boolean        = muertes.isEmpty
 
     /** Con 0 muertes el cociente seria infinito; el contrato pide devolver las eliminaciones y
       * marcarlo aparte, que es informacion y no un numero inventado.
       */
-    val kd: Double =
-      if kdIndefinido then eliminaciones.size.toDouble
-      else eliminaciones.size.toDouble / muertes.size
+    val kd: Double = cociente(eliminaciones.size, muertes.size)
+
+    /** Lo mismo pero mirando solo a la maquina: a cuantos bots elimino y cuantas veces lo mato un
+      * bot. Sale de particionar por `playerType`, sin logica aparte, que es justo para lo que ese
+      * campo existe.
+      */
+    val eliminacionesABots: Int = eliminaciones.count(e => e.str("victimId").exists(esBot))
+    val muertesPorBots: Int     = muertes.count(_.playerId.exists(esBot))
+
+    val kdContraBotsIndefinido: Boolean = muertesPorBots == 0
+    val kdContraBots: Double            = cociente(eliminacionesABots, muertesPorBots)
+
+    private def cociente(arriba: Int, abajo: Int): Double =
+      if abajo == 0 then arriba.toDouble else arriba.toDouble / abajo
 
   private def luchadores(lote: Batch): List[Luchador] =
     val bajas = lote.deTipo(PlayerEliminated)
@@ -48,7 +64,7 @@ object CombatAnalyzer extends GameAnalyzer:
       bajas.flatMap(e => e.str("victimId").map(_ -> e)).groupMap(_._1)(_._2)
 
     lote.jugadores
-      .map(id => Luchador(id, porAutor.getOrElse(id, Nil), porVictima.getOrElse(id, Nil)))
+      .map(id => Luchador(id, porAutor.getOrElse(id, Nil), porVictima.getOrElse(id, Nil), lote.esBot))
       .sortBy(l => (-l.eliminaciones.size, -l.danoPromedio.getOrElse(0.0)))
 
   /** Gana el de mas eliminaciones; el desempate por dano promedio ya viene del orden de
@@ -70,9 +86,14 @@ object CombatAnalyzer extends GameAnalyzer:
       }
       .sortBy((arma, cuantas, _) => (-cuantas, arma))
 
+    // Primera sangre: quien hizo la primera eliminacion. El lote llega ordenado por timestamp, asi
+    // que es la primera de la lista y no hay que volver a ordenar.
+    val primeraSangre = lote.deTipo(PlayerEliminated).headOption.flatMap(_.playerId)
+
     ujson.Obj(
       "mode"              -> Js.texto(arranque.flatMap(_.str("mode"))),
       "deadliestPlayerId" -> Js.texto(ganador(lote)),
+      "firstBloodBy"      -> Js.texto(primeraSangre),
       "byWeapon" -> ujson.Arr.from(
         porArma.map { (arma, cuantas, promedio) =>
           ujson.Obj(
@@ -94,7 +115,11 @@ object CombatAnalyzer extends GameAnalyzer:
           "deaths"       -> l.muertes.size,
           "kd"           -> Numeros.dosDecimales(l.kd),
           "kdUndefined"  -> l.kdIndefinido,
-          "avgDamage"    -> Js.num(l.danoPromedio.map(Numeros.dosDecimales))
+          "avgDamage"    -> Js.num(l.danoPromedio.map(Numeros.dosDecimales)),
+          "eliminationsVsBots"  -> l.eliminacionesABots,
+          "deathsByBots"        -> l.muertesPorBots,
+          "kdVsBots"            -> Numeros.dosDecimales(l.kdContraBots),
+          "kdVsBotsUndefined"   -> l.kdContraBotsIndefinido
         )
       )
     }
@@ -114,13 +139,26 @@ object CombatAnalyzer extends GameAnalyzer:
       yield promedio * cuantas
     }.sum
 
+    val aBots      = porPartida.flatMap(Js.leerNum(_, "eliminationsVsBots")).sum
+    val porBots    = porPartida.flatMap(Js.leerNum(_, "deathsByBots")).sum
+
     ujson.Obj(
       "eliminations" -> eliminaciones,
       "deaths"       -> muertes,
-      "kd"           -> Numeros.dosDecimales(if muertes == 0 then eliminaciones else eliminaciones / muertes),
+      "kd"           -> Numeros.dosDecimales(cocienteSeguro(eliminaciones, muertes)),
       "kdUndefined"  -> (muertes == 0),
-      "avgDamage"    -> Js.num(Option.when(eliminaciones > 0)(Numeros.dosDecimales(danoTotal / eliminaciones)))
+      "avgDamage"    -> Js.num(Option.when(eliminaciones > 0)(Numeros.dosDecimales(danoTotal / eliminaciones))),
+      "eliminationsVsBots" -> aBots,
+      "deathsByBots"       -> porBots,
+      "kdVsBots"           -> Numeros.dosDecimales(cocienteSeguro(aBots, porBots)),
+      "kdVsBotsUndefined"  -> (porBots == 0)
     )
+
+  /** Los dos K/D se recalculan con los totales y no promediando los de cada partida, por la misma
+    * razon: el promedio de cocientes no es el cociente de los totales.
+    */
+  private def cocienteSeguro(arriba: Double, abajo: Double): Double =
+    if abajo == 0 then arriba else arriba / abajo
 
   protected def patrones(lote: Batch): List[Pattern] =
     val todos = luchadores(lote)
