@@ -12,16 +12,21 @@ class ResultStoreSuite extends munit.FunSuite:
 
   private val Reloj = () => "2026-10-05T00:00:00.000Z"
 
-  private def analizar(nombre: String): MatchResult =
+  private def loteDe(nombre: String): Batch =
     val ruta  = Paths.get("..", "contracts", "examples", nombre)
     val texto = new String(Files.readAllBytes(ruta), StandardCharsets.UTF_8)
-    val lote  = Batch.parse(texto).fold(e => fail(s"$nombre: $e"), identity)
-    GameAnalyzer.para(lote.gameId).fold(fail(s"sin analizador para ${lote.gameId}"))(_.analizar(lote, Reloj))
+    Batch.parse(texto).fold(e => fail(s"$nombre: $e"), identity)
+
+  /** Guarda el resultado y el lote: el almacen necesita los dos para las estadisticas globales. */
+  private def guardar(almacen: ResultStore, nombre: String): Unit =
+    val lote = loteDe(nombre)
+    val r = GameAnalyzer.para(lote.gameId).fold(fail(s"sin analizador para ${lote.gameId}"))(_.analizar(lote, Reloj))
+    almacen.guardar(r, lote)
 
   private def almacenLleno: ResultStore =
     val almacen = ResultStore()
-    almacen.guardar(analizar("racing-match-ok.json"))
-    almacen.guardar(analizar("combat-match-ok.json"))
+    guardar(almacen, "racing-match-ok.json")
+    guardar(almacen, "combat-match-ok.json")
     almacen
 
   test("guarda y devuelve una partida"):
@@ -34,7 +39,7 @@ class ResultStoreSuite extends munit.FunSuite:
 
   test("guardar la misma partida dos veces la reemplaza, no la duplica"):
     val almacen = almacenLleno
-    almacen.guardar(analizar("racing-match-ok.json"))
+    guardar(almacen, "racing-match-ok.json")
     assertEquals(almacen.jugador("p1").map(_.matchesPlayed), Some(2))
 
   test("p2 jugo en los dos juegos y cada uno se agrega por separado"):

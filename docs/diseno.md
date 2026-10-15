@@ -270,14 +270,14 @@ Adaptado al estado real del repo: lo tachado ya está en `main`.
 
 | Día | Gabriel (Scala + simulador) | Samuel (Go + infra) |
 |---|---|---|
-| **1 — Base** | ~~modelo inmutable~~, ~~`GameAnalyzer`~~; **`GenericAnalyzer`** | ~~recibir y validar eventos~~ |
-| **2 — Núcleo** | ~~`RacingAnalyzer`~~, ~~`CombatAnalyzer`~~; **K/D contra bots y primera sangre**; **simulador en Go: racing y combat** | ~~estado por partida, goroutines, envío a Scala~~ |
-| **3 — Juegos nuevos** | **`BlackjackAnalyzer` y `BattleshipAnalyzer`**; **estadísticas globales y ranking**; **simulador: blackjack y battleship** | ~~`GET /metrics`~~ |
+| **1 — Base** | ~~modelo inmutable~~, ~~`GameAnalyzer`~~, ~~`GenericAnalyzer`~~ | ~~recibir y validar eventos~~ |
+| **2 — Núcleo** | ~~`RacingAnalyzer`~~, ~~`CombatAnalyzer`~~, ~~K/D contra bots y primera sangre~~; **simulador en Go: racing y combat** | ~~estado por partida, goroutines, envío a Scala~~ |
+| **3 — Juegos nuevos** | ~~`BlackjackAnalyzer` y `BattleshipAnalyzer`~~, ~~estadísticas globales y ranking~~; **simulador: blackjack y battleship** | ~~`GET /metrics`~~ |
 | **4 — Integración** | ensayo de la demo | docker-compose, CI/CD, deployment |
 
 La documentación se escribe durante los cuatro días, no al final.
 
-Lo que ya está hecho de la columna de Gabriel: el modelo, el `GameAnalyzer`, los analizadores de racing y combat, el almacén y los endpoints. Lo que falta de su columna es lo que aparece en **negrita**. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); falta el Día 4: el simulador en docker-compose, sus pruebas y la prueba de integración en el CI, y el deployment.
+De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); falta el Día 4: el simulador en docker-compose, sus pruebas y la prueba de integración en el CI, y el deployment.
 
 ## Flujo de git
 
@@ -327,7 +327,7 @@ curl http://localhost:8081/health   # análisis
 
 ## Entregables (checklist del enunciado)
 
-- [ ] Código fuente Go y Scala — Scala hecho para 2 de los 4 juegos; Go completo
+- [x] Código fuente Go y Scala — los cuatro analizadores, el `GenericAnalyzer` y las estadísticas globales en Scala; ingestión completa en Go
 - [x] Especificación del formato de eventos — `contracts/event.schema.json` y `contracts/events.md`
 - [x] Descripción de los juegos y justificación de los eventos — `contracts/events.md`
 - [ ] Descripción de estadísticas y reglas — definiciones en este archivo y formas de salida en `contracts/results.md`; falta el documento final

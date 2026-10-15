@@ -75,8 +75,34 @@ final case class PlayerSummary(
     playerId: String,
     matchesPlayed: Int,
     wins: Int,
+    winRate: Double,
+    vsBots: SplitPorRival,
+    vsHumans: SplitPorRival,
+    disconnections: Desconexiones,
     byGame: List[GameSummary],
     matches: List[MatchRef]
+) derives ReadWriter
+
+/** Partidas y victorias contra un tipo de rival. Sale de particionar por `playerType`, sin saber
+  * nada de ningun juego: una partida cuenta como "contra bots" si tuvo al menos un participante
+  * con `playerType: "BOT"`.
+  */
+final case class SplitPorRival(matchesPlayed: Int, wins: Int, winRate: Double) derives ReadWriter
+
+/** Un `PLAYER_DISCONNECTED` es una reconexion si el jugador vuelve dentro de la ventana, y un
+  * abandono si no vuelve o si vuelve demasiado tarde.
+  */
+final case class Desconexiones(reconnections: Int, abandons: Int) derives ReadWriter
+
+/** Respuesta de `GET /results/games/{gameId}/ranking`. */
+final case class GameRanking(gameId: String, top: Int, ranking: List[RankingEntry]) derives ReadWriter
+
+final case class RankingEntry(
+    rank: Int,
+    playerId: String,
+    matchesPlayed: Int,
+    wins: Int,
+    winRate: Double
 ) derives ReadWriter
 
 final case class GameSummary(
