@@ -29,6 +29,9 @@ eventos se pueda incorporar sin reescribir el sistema.
     "gameSpecific": {
       "track": "Circuito Volcan",
       "laps": 3,
+      "fastestLapMs": 76000,
+      "fastestLapBy": "p3",
+      "totalOvertakes": 1,
       "ranking": [
         { "playerId": "p3", "adjustedTimeMs": 238000, "penaltyMs": 0 },
         { "playerId": "p1", "adjustedTimeMs": 250000, "penaltyMs": 0 },
@@ -45,7 +48,8 @@ eventos se pueda incorporar sin reescribir el sistema.
         "consistencyMs": 4027.68,
         "overtakes": 1,
         "positions": [3, 1, 1],
-        "adjustedTimeMs": 238000
+        "adjustedTimeMs": 238000,
+        "penaltyMs": 0
       }
     }
   ],
@@ -58,6 +62,13 @@ eventos se pueda incorporar sin reescribir el sistema.
   ]
 }
 ```
+
+`fastestLapMs` es la mejor vuelta de **toda la carrera** y `fastestLapBy` quien la hizo; no tiene
+por qué ser el ganador, que se decide por tiempo ajustado. `totalOvertakes` suma los adelantamientos
+de todos. Las tres van en `null` o en cero si nadie completó una vuelta.
+
+`penaltyMs` aparece en dos sitios a propósito: en `ranking` explica el orden, y en el jugador se lee
+su ficha sin tener que buscarlo en la tabla.
 
 `players` lleva una entrada por jugador (el ejemplo muestra una sola por brevedad). `patterns` va vacío si no se
 detectó ningún patrón: es una lista, no un booleano, porque un mismo jugador puede disparar varias reglas y porque
