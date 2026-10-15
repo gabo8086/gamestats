@@ -19,6 +19,8 @@ final case class MatchResult(
     gameVersion: String,
     analyzedAt: String,
     eventCount: Int,
+    /** Lo que calcula el `GenericAnalyzer`: lo mismo para los cuatro juegos. */
+    generic: ujson.Obj,
     @key("match") matchSummary: MatchSummary,
     players: List[PlayerResult],
     patterns: List[Pattern]
