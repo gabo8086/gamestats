@@ -43,6 +43,8 @@ trait GameAnalyzer:
       gameVersion = lote.gameVersion,
       analyzedAt = ahora(),
       eventCount = lote.events.size,
+      // No lo aporta el juego: lo calcula el GenericAnalyzer para todos por igual.
+      generic = GenericAnalyzer.analizar(lote),
       matchSummary = MatchSummary(
         startedAt = inicio,
         finishedAt = fin,
