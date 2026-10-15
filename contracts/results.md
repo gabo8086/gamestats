@@ -78,6 +78,7 @@ agregar una regla no cambia la forma del JSON.
     "gameSpecific": {
       "mode": "deathmatch",
       "deadliestPlayerId": "p2",
+      "firstBloodBy": "p1",
       "byWeapon": [
         { "weapon": "rifle",   "eliminations": 3, "avgDamage": 116.67 },
         { "weapon": "shotgun", "eliminations": 2, "avgDamage": 102.5 },
@@ -93,7 +94,11 @@ agregar una regla no cambia la forma del JSON.
         "deaths": 1,
         "kd": 3.0,
         "kdUndefined": false,
-        "avgDamage": 111.67
+        "avgDamage": 111.67,
+        "eliminationsVsBots": 0,
+        "deathsByBots": 0,
+        "kdVsBots": 0.0,
+        "kdVsBotsUndefined": true
       }
     },
     {
@@ -125,6 +130,13 @@ agregar una regla no cambia la forma del JSON.
   ]
 }
 ```
+
+`firstBloodBy` es quien hizo la primera eliminación de la partida, o `null` si no hubo ninguna.
+
+Los cuatro campos `*VsBots` / `*ByBots` salen de particionar por `playerType`, el que declara cada
+`PLAYER_JOINED`. `kdVsBotsUndefined` marca el mismo caso que `kdUndefined`: cero muertes a manos de
+bots, así que el cociente devuelve las eliminaciones en vez de infinito. En una partida sin bots
+quedan todos en cero y la marca en `true`.
 
 En `racing`, `winnerId` es el del menor tiempo ajustado; en `combat`, el de más eliminaciones. Es el analizador de
 cada juego el que decide qué significa "ganar".

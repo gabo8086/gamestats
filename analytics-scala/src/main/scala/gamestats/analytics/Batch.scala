@@ -28,6 +28,20 @@ final case class Batch(
   /** Eventos de un tipo, en el orden en que llegaron. */
   def deTipo(tipo: String): List[Event] = events.filter(_.eventType == tipo)
 
+  /** Tipo declarado de cada jugador en su `PLAYER_JOINED`: `"HUMAN"` o `"BOT"`.
+    *
+    * Vive aqui y no dentro de un analizador porque no depende del juego: lo declara el sobre comun,
+    * y lo usan tanto el combate (K/D contra bots) como las estadisticas globales (win rate contra
+    * bots frente a humanos). Es `lazy` porque varios calculos lo piden sobre el mismo lote.
+    */
+  lazy val tiposDeJugador: Map[String, String] =
+    deTipo(EventType.PlayerJoined)
+      .flatMap(e => e.playerId.zip(e.str("playerType")))
+      .toMap
+
+  /** Un bot es un jugador con un atributo, no un caso especial del modelo. */
+  def esBot(playerId: String): Boolean = tiposDeJugador.get(playerId).contains(EventType.Bot)
+
   /** Jugadores de la partida, segun los `PLAYER_JOINED`. */
   def jugadores: List[String] =
     deTipo(EventType.PlayerJoined).flatMap(_.playerId).distinct
