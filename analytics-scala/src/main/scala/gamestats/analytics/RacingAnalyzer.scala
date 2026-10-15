@@ -69,9 +69,19 @@ object RacingAnalyzer extends GameAnalyzer:
   protected def resumenDelJuego(lote: Batch): ujson.Obj =
     val arranque = lote.deTipo(EventType.MatchStarted).headOption
 
+    val todos = corredores(lote)
+
+    // Vuelta rapida de la carrera: el menor lapTimeMs de toda la partida, con quien lo hizo. Se
+    // busca entre los corredores y no entre los eventos sueltos para no repetir el filtrado.
+    val vueltaRapida = todos.flatMap(c => c.mejorVueltaMs.map(c.playerId -> _)).minByOption(_._2)
+
     ujson.Obj(
       "track" -> Js.texto(arranque.flatMap(_.str("track"))),
       "laps"  -> Js.entero(arranque.flatMap(_.long("laps"))),
+      "fastestLapMs"       -> Js.entero(vueltaRapida.map(_._2)),
+      "fastestLapBy"       -> Js.texto(vueltaRapida.map(_._1)),
+      // Suma de los adelantamientos de todos: cuanto se movio la carrera en total.
+      "totalOvertakes" -> todos.map(_.adelantamientos).sum,
       "ranking" -> ujson.Arr.from(
         corredores(lote).filter(_.tiemposMs.nonEmpty).map { c =>
           ujson.Obj(
@@ -94,7 +104,10 @@ object RacingAnalyzer extends GameAnalyzer:
           "consistencyMs"  -> Js.num(c.consistenciaMs.map(Numeros.dosDecimales)),
           "overtakes"      -> c.adelantamientos,
           "positions"      -> ujson.Arr.from(c.posiciones),
-          "adjustedTimeMs" -> c.adjustedTimeMs.toDouble
+          "adjustedTimeMs" -> c.adjustedTimeMs.toDouble,
+          // Las penalizaciones acumuladas tambien van por jugador y no solo en el ranking: ahi
+          // estan para explicar el orden, aqui para leer la ficha de uno solo.
+          "penaltyMs" -> c.penaltyMs.toDouble
         )
       )
     }
@@ -107,7 +120,8 @@ object RacingAnalyzer extends GameAnalyzer:
     ujson.Obj(
       "bestLapMs"  -> Js.num(porPartida.flatMap(Js.leerNum(_, "bestLapMs")).minOption),
       "avgLapMs"   -> Js.num(Numeros.promedio(porPartida.flatMap(Js.leerNum(_, "avgLapMs"))).map(Numeros.dosDecimales)),
-      "overtakes"  -> porPartida.flatMap(Js.leerNum(_, "overtakes")).sum
+      "overtakes"  -> porPartida.flatMap(Js.leerNum(_, "overtakes")).sum,
+      "penaltyMs"  -> porPartida.flatMap(Js.leerNum(_, "penaltyMs")).sum
     )
 
   /** Remontada: el ganador estuvo en la ultima posicion en alguna vuelta.
