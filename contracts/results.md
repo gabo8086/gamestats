@@ -320,7 +320,9 @@ Al mismo documento se le agregan tres bloques que **no dependen del juego** y po
 - `vsBots` / `vsHumans` parten las partidas según haya o no algún participante con `playerType: "BOT"`, que es lo que
   `PLAYER_JOINED` declara. Una partida con bots cuenta en `vsBots` aunque también haya humanos.
 - `disconnections` cuenta los `PLAYER_DISCONNECTED` del jugador: **reconexión** si vuelve en ≤ 60 s, **abandono** si
-  nunca aparece el `PLAYER_RECONNECTED`. La ventana es la decisión 15 y está propuesta, no cerrada.
+  nunca aparece el `PLAYER_RECONNECTED` **o si vuelve más tarde**. Que volver tarde cuente como abandono es una
+  decisión: alguien que reaparece diez minutos después abandonó la partida igual, y contarlo como interrupción sería
+  más engañoso. La ventana es la decisión 15 y está propuesta, no cerrada.
 
 Los tres salen del sobre y de `playerType`, sin tocar el `data` de ningún juego. Es la misma idea que el
 `GenericAnalyzer`: lo que es común se calcula una vez y sirve para todos.

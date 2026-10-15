@@ -51,9 +51,11 @@ final case class Event(
   * analizador de su juego, no aqui.
   */
 object EventType:
-  val MatchStarted: String  = "MATCH_STARTED"
-  val PlayerJoined: String  = "PLAYER_JOINED"
-  val MatchFinished: String = "MATCH_FINISHED"
+  val MatchStarted: String        = "MATCH_STARTED"
+  val PlayerJoined: String        = "PLAYER_JOINED"
+  val PlayerDisconnected: String  = "PLAYER_DISCONNECTED"
+  val PlayerReconnected: String   = "PLAYER_RECONNECTED"
+  val MatchFinished: String       = "MATCH_FINISHED"
 
   /** Valores de `PLAYER_JOINED.data.playerType`. */
   val Human: String = "HUMAN"

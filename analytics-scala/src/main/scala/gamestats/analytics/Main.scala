@@ -72,7 +72,7 @@ object Main extends cask.MainRoutes:
 
           case Some(analizador) =>
             val resultado = analizador.analizar(lote, reloj)
-            resultados.guardar(resultado)
+            resultados.guardar(resultado, lote)
             json(resultado)
 
   @cask.get("/results/matches/:matchId")
@@ -80,6 +80,13 @@ object Main extends cask.MainRoutes:
     resultados
       .partida(matchId)
       .fold(json(ErrorBody(s"no hay resultados para la partida '$matchId'"), 404))(json(_))
+
+  /** Los mejores de un juego. `top` entra por query string y vale 10 si no se indica. */
+  @cask.get("/results/games/:gameId/ranking")
+  def rankingDeJuego(gameId: String, top: Int = 10): cask.Response[String] =
+    resultados
+      .ranking(gameId, top)
+      .fold(json(ErrorBody(s"no hay partidas analizadas del juego '$gameId'"), 404))(json(_))
 
   @cask.get("/results/players/:playerId")
   def resultadoDeJugador(playerId: String): cask.Response[String] =
