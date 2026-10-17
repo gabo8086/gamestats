@@ -1,0 +1,59 @@
+# Levanta GameStats con la imagen PUBLICADA en GitHub Container Registry, sin compilar nada.
+#
+# Es el mismo sistema que docker-compose.yml, con una diferencia: aqui no hay `build`, solo
+# `image`, asi que Docker la descarga de ghcr.io. Basta tener Docker; no hace falta ni el codigo,
+# solo este archivo.
+#
+# Uso:
+#   docker compose -f docker-compose.deploy.yml up -d --wait
+#   docker compose -f docker-compose.deploy.yml run --rm ejemplos
+#   docker compose -f docker-compose.deploy.yml run --rm simulator --no-files --delay-ms 0
+#   docker compose -f docker-compose.deploy.yml down -v
+#
+# GAMESTATS_TAG elige la version: `latest` (lo ultimo de main), `v1.0` (un tag de git) o
+# `sha-<commit>`. Para la entrega conviene una version fija, que no cambia si despues se hace push.
+
+name: gamestats
+
+x-gamestats: &gamestats
+  image: ghcr.io/gabo8086/gamestats:${GAMESTATS_TAG:-latest}
+
+services:
+  analytics:
+    <<: *gamestats
+    command: ["analytics"]
+    ports:
+      - "8081:8081"
+
+  ingest:
+    <<: *gamestats
+    command: ["ingest"]
+    environment:
+      ANALYTICS_URL: "http://analytics:8081"
+    ports:
+      - "8080:8080"
+    depends_on:
+      analytics:
+        condition: service_healthy
+
+  simulator:
+    <<: *gamestats
+    entrypoint: ["gamestats", "simulator"]
+    command: []
+    profiles: ["tools"]
+    environment:
+      INGEST_URL: "http://ingest:8080"
+    depends_on:
+      ingest:
+        condition: service_healthy
+
+  ejemplos:
+    <<: *gamestats
+    entrypoint: ["gamestats", "ejemplos"]
+    command: []
+    profiles: ["tools"]
+    environment:
+      INGEST_URL: "http://ingest:8080"
+    depends_on:
+      ingest:
+        condition: service_healthy

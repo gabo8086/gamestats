@@ -12,8 +12,15 @@
 #   docker run --rm -p 8080:8080 -p 8081:8081 gamestats          # Go + Scala
 #   docker run --rm gamestats help                               # los demas modos
 
+# Multi-arquitectura (amd64 y arm64): las dos etapas de compilacion corren en la arquitectura de la
+# maquina que construye ($BUILDPLATFORM), sin emulacion. Go compila cruzado para la arquitectura de
+# destino y el jar de Scala es el mismo en cualquiera, asi que solo la etapa final es por
+# arquitectura.
+
 # ---------------------------------------------------------------------------- Go
-FROM golang:1.24-alpine AS go-build
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS go-build
+ARG TARGETOS=linux
+ARG TARGETARCH
 
 WORKDIR /src
 
@@ -25,11 +32,12 @@ COPY ingest-go/ ./
 
 # CGO_ENABLED=0 da un binario estatico, que corre en cualquier base sin el toolchain de Go.
 # -trimpath quita las rutas absolutas del binario; -s -w quitan simbolos y depuracion.
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/ingest .
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags="-s -w" -o /out/ingest .
 
 # ---------------------------------------------------------------------------- Scala
 # El tag fija Java 21, sbt 1.13.0 y Scala 3.3.8, las mismas versiones de build.sbt.
-FROM sbtscala/scala-sbt:eclipse-temurin-21.0.12_8_1.13.0_3.3.8 AS scala-build
+FROM --platform=$BUILDPLATFORM sbtscala/scala-sbt:eclipse-temurin-21.0.12_8_1.13.0_3.3.8 AS scala-build
 
 # La imagen de sbt corre como usuario sin privilegios; necesitamos escribir en /src y en el cache.
 USER root

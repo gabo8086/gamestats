@@ -181,7 +181,7 @@ Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el rep
 | 8 | Puertos | Go `8080`, Scala `8081` | S | ⬜ |
 | 9a | Versiones y bibliotecas de Go | Go 1.24, solo biblioteca estándar | S | ⬜ |
 | 9b | Versiones y bibliotecas de Scala | Scala 3.3.8 (LTS), sbt 1.13.0, Java 21, MUnit 1.3.6, **cask 0.11.3** (HTTP) y **upickle 4.4.3** (JSON). Justificación y alternativas descartadas en `analytics-scala/README.md` | G | ✅ |
-| 10 | Repo, CI y deployment | GitHub, GitHub Actions, GHCR; entorno de deployment por elegir | S | ⬜ |
+| 10 | Repo, CI y deployment | GitHub, GitHub Actions, imagen publicada en GHCR (amd64 y arm64); el entorno de deployment es Docker en la máquina de quien evalúa, con `docker-compose.deploy.yml` | S | ⬜ |
 | 11 | Reparto y ritmo | Tabla de "Reparto de trabajo" y cronograma de 4 días | A | ⬜ |
 | 12 | **Cuatro juegos** | `racing`, `combat`, `blackjack`, `battleship`; dos de ellos preparados para Jugador vs Máquina | A | ⬜ |
 | 13 | **`matchMode` y `playerType`** | `MATCH_STARTED.data.matchMode` (`PVP`/`PVE`) y `PLAYER_JOINED.data.playerType` (`HUMAN`/`BOT`, con `botLevel` opcional). Justificación en `contracts/events.md` | A | ⬜ |
@@ -277,7 +277,7 @@ Adaptado al estado real del repo: lo tachado ya está en `main`.
 
 La documentación se escribe durante los cuatro días, no al final.
 
-De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); del Día 4 están la imagen única, el simulador en docker-compose, sus pruebas y la prueba de integración en el CI; falta el deployment.
+De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); del Día 4 están la imagen única, el simulador en docker-compose, sus pruebas, la prueba de integración en el CI y la publicación en GHCR con su prueba de deploy.
 
 ## Flujo de git
 
@@ -292,7 +292,7 @@ De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análi
 - `docker-compose.yml` en la raíz levanta Go + Scala desde esa imagen, y el simulador y los ejemplos como servicios opcionales (`docker compose run`).
 - Pipeline en GitHub Actions (`.github/workflows/`):
   - En cada PR: `go vet` + `go test` + `go build`; `sbt test` + `sbt assembly`; validación de los ejemplos contra los esquemas y pruebas del simulador; `docker compose build`, prueba de humo de `/health` y prueba de integración (ejemplos y simulador por Go, comprobando las cuatro reglas en los resultados).
-  - En merge a `main`: construir imágenes, publicar en GHCR y desplegar (entorno por decidir en Fase 3).
+  - En push a `main` o en un tag `v*`: publicar la imagen en GHCR para amd64 y arm64, y probar la imagen publicada con `docker-compose.deploy.yml`, sin login (jobs `publish` y `deploy`).
 
 ## Comandos
 
@@ -332,8 +332,8 @@ curl http://localhost:8081/health   # análisis
 - [x] Descripción de los juegos y justificación de los eventos — `contracts/events.md`
 - [ ] Descripción de estadísticas y reglas — definiciones en este archivo y formas de salida en `contracts/results.md`; falta el documento final
 - [x] Dockerfile (imagen única) y docker-compose
-- [x] Configuración del pipeline CI/CD — falta la parte de deployment (Fase 3)
-- [ ] Documentación de instalación, ejecución y deployment — `README.md` cubre instalación y ejecución con Docker; falta deployment
+- [x] Configuración del pipeline CI/CD — pruebas, integración, publicación en GHCR y prueba de la imagen publicada
+- [x] Documentación de instalación, ejecución y deployment — `README.md`
 - [ ] Demo funcional
 - [x] Justificación de qué va en imperativo (Go) y qué en funcional (Scala), con ventajas y limitaciones de cada enfoque — [`paradigmas.md`](paradigmas.md)
 
