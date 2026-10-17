@@ -282,9 +282,10 @@ Te las digo yo para que no las descubras vos:
    `analytics` por nombre de servicio y le analiza los nueve lotes. Toma `INGEST_URL` del entorno,
    así que **descomentar el bloque debería bastar**.
 
-6. **El CI no corre las pruebas del simulador.** Ahora son `go vet ./... && go test ./...` desde
-   `simulator/`, 22 pruebas, menos de dos segundos. `.github/` es tuyo, así que te lo dejo apuntado
-   en vez de tocarlo. El `Dockerfile` ya lo compila, así que un error de compilación sí se vería.
+6. **Las pruebas del simulador en el CI ya pasaron de Python a Go.** El paso sigue donde lo pusiste,
+   en el job `Contrato`, pero ahora corre `gofmt`, `go vet` y `go test -race`; el job necesita
+   `setup-go` además de `setup-python`. Lo dejé ahí y no en el job de Go para no renombrar un check
+   que el ruleset exige como obligatorio.
 
 ---
 

@@ -40,9 +40,22 @@ jobs:
         run: python contracts/validate.py
 
       # El simulador es la fuente de datos del contrato: si genera algo fuera de el, que se sepa aqui.
+      # Pasó de Python a Go (decision 17), asi que este job necesita las dos herramientas. Se queda
+      # junto al contrato y no en el job de Go para no renombrar un check que el ruleset exige.
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.24"
+          cache: false
+
       - name: Pruebas del simulador
         working-directory: simulator
-        run: python -m unittest
+        run: |
+          sin_formato=$(gofmt -l .)
+          if [ -n "$sin_formato" ]; then
+            echo "Archivos sin gofmt:"; echo "$sin_formato"; exit 1
+          fi
+          go vet ./...
+          go test -race ./...
 
   go:
     name: Go (ingest)
