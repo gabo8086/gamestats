@@ -271,13 +271,23 @@ Adaptado al estado real del repo: lo tachado ya está en `main`.
 | Día | Gabriel (Scala + simulador) | Samuel (Go + infra) |
 |---|---|---|
 | **1 — Base** | ~~modelo inmutable~~, ~~`GameAnalyzer`~~, ~~`GenericAnalyzer`~~ | ~~recibir y validar eventos~~ |
-| **2 — Núcleo** | ~~`RacingAnalyzer`~~, ~~`CombatAnalyzer`~~, ~~K/D contra bots y primera sangre~~; **simulador en Go: racing y combat** | ~~estado por partida, goroutines, envío a Scala~~ |
-| **3 — Juegos nuevos** | ~~`BlackjackAnalyzer` y `BattleshipAnalyzer`~~, ~~estadísticas globales y ranking~~; **simulador: blackjack y battleship** | ~~`GET /metrics`~~ |
-| **4 — Integración** | ensayo de la demo | docker-compose, CI/CD, deployment |
+| **2 — Núcleo** | ~~`RacingAnalyzer`~~, ~~`CombatAnalyzer`~~, ~~K/D contra bots y primera sangre~~, ~~simulador en Go: racing y combat~~ | ~~estado por partida, goroutines, envío a Scala~~ |
+| **3 — Juegos nuevos** | ~~`BlackjackAnalyzer` y `BattleshipAnalyzer`~~, ~~estadísticas globales y ranking~~, ~~simulador: blackjack y battleship~~ | ~~`GET /metrics`~~ |
+| **4 — Integración** | **ensayo de la demo** | ~~docker-compose, CI/CD, deployment~~ |
 
 La documentación se escribe durante los cuatro días, no al final.
 
-De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); del Día 4 están la imagen única, el simulador en docker-compose, sus pruebas, la prueba de integración en el CI y la publicación en GHCR con su prueba de deploy.
+**El código está completo de los dos lados.** De Gabriel: los cuatro analizadores, el `GenericAnalyzer`, las estadísticas globales y el simulador en Go. De Samuel: la ingestión con una goroutine por partida, `GET /metrics`, la imagen única, el CI con prueba de integración y la publicación en GHCR con su prueba de deploy.
+
+Lo que queda no es código:
+
+| Pendiente | De quién |
+|---|---|
+| Documento final de estadísticas y reglas | ambos |
+| Ensayar la demo | ambos |
+| Cerrar las decisiones de la tabla de arriba: 14 de 18 siguen en ⬜ | 8 de ambos, 6 de Samuel |
+| Etiquetar `v1.0` cuando la demo esté ensayada | Gabriel |
+| Confirmar con el profesor la fecha de entrega y el mínimo de 4 juegos | ambos |
 
 ## Flujo de git
 
