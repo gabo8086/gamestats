@@ -1,13 +1,6 @@
 # Simulador de eventos
 
-> **Responsable: Gabriel.** Pasó a este lado con el intercambio de roles del 3 de octubre de 2026.
->
-> ⚠️ **Este simulador se va a reemplazar por uno en Go** (decisión 17 del `docs/diseno.md`, 9 de octubre
-> de 2026). El de Python que está aquí cubre dos juegos y sigue funcionando; se mantiene hasta que
-> el de Go exista, para no dejar el repo sin forma de probar el análisis. El borrado va en el PR que
-> traiga el reemplazo.
->
-> El de Go tiene que cubrir los **cuatro** juegos, humanos y bots, y disparar las cuatro reglas.
+> **Responsable: Gabriel.** Escrito en Go, como fija la decisión 17 de [`../docs/diseno.md`](../docs/diseno.md).
 
 Hace de sistema de juegos externo: GameStats no implementa los videojuegos, solo consume lo que esta
 fuente produce (enunciado §8). El contrato de lo que genera está en
@@ -16,24 +9,23 @@ fuente produce (enunciado §8). El contrato de lo que genera está en
 ## Uso
 
 ```bash
-python simulate.py                                   # escribe out/ con los JSON
-python simulate.py --analyze http://localhost:8081   # manda los lotes directo a Scala
-python simulate.py --post http://localhost:8080      # manda los eventos a Go, con retardo
-python -m unittest                                   # 19 pruebas
-docker compose run --rm simulator --no-files         # dentro de la imagen, contra Go
+go run .                                   # escribe out/ con los JSON
+go run . -analyze http://localhost:8081    # manda los lotes directo a Scala
+go run . -post http://localhost:8080       # manda los eventos a Go, con retardo
+go test ./...                              # 22 pruebas
 ```
 
-Sin argumentos toma `ANALYTICS_URL` e `INGEST_URL` del entorno, que es lo que define el
-`docker-compose.yml`, para que el servicio funcione sin pasarle nada.
+Dentro de la imagen de Docker se invoca como `gamestats simulator <args>`, y toma `INGEST_URL` y
+`ANALYTICS_URL` del entorno, así que ahí funciona sin pasarle nada.
 
 | Opción | Para qué |
 |---|---|
-| `--seed N` | semilla del generador; la misma semilla da el mismo flujo (por defecto 7) |
-| `--matches N` | partidas al azar, además de las 3 guionadas (por defecto 6) |
-| `--disorder N` | pares de eventos adyacentes a intercambiar (por defecto 8) |
-| `--out RUTA` | dónde escribir los JSON |
-| `--no-files` | no escribir nada, solo enviar |
-| `--delay-ms N` | retardo entre eventos con `--post` (por defecto 50) |
+| `-seed N` | semilla del generador; la misma semilla da el mismo flujo (por defecto 7) |
+| `-matches N` | partidas al azar, además de las 6 guionadas (por defecto 6) |
+| `-disorder N` | pares de eventos adyacentes a intercambiar (por defecto 8) |
+| `-out RUTA` | dónde escribir los JSON |
+| `-no-files` | no escribir nada, solo enviar |
+| `-delay-ms N` | retardo entre eventos con `-post` (por defecto 50) |
 
 ## Qué genera
 
@@ -45,72 +37,68 @@ out/
   batches/<matchId>.json   un lote por partida, listo para POST /analyze
 ```
 
-`out/` está en `.gitignore`: la generación es determinista, así que versionarla sería guardar algo
-que el script reproduce en un segundo.
+Con los valores por defecto son **12 partidas y 234 eventos**, y aparecen los quince tipos de evento
+del contrato. `out/` está en `.gitignore`: la generación es determinista, así que versionarla sería
+guardar algo que el programa reproduce en un segundo.
 
-Los `batches/` existen para poder probar el módulo Scala **sin depender de que la ingestión esté
-lista**. Es lo que permitió validar todo el análisis mientras `ingest-go/` seguía en esqueleto.
+Los `batches/` existen para poder probar el módulo Scala **sin depender de la ingestión**.
 
-## Decisiones
+## Por qué en Go
 
-### Lenguaje: Python hoy, Go a partir de la decisión 17
+El simulador no entra en la nota de paradigmas, pero uno **concurrente** en Go refuerza el paradigma
+imperativo del proyecto y evita sumar un tercer lenguaje al despliegue. Antes estaba en Python; la
+decisión 17 lo cambió cuando el requisito pasó a cuatro juegos.
 
-Cuando se escribió, el criterio fue minimizar fricción: el simulador no entra en la nota de
-paradigmas, el proyecto ya usaba Python en el CI para `contracts/validate.py`, y con `urllib` de la
-estándar no hacía falta ni una dependencia ni un toolchain nuevo.
+Usa solo la biblioteca estándar: `encoding/json`, `net/http`, `math/rand`, `sync`.
 
-Con el cambio de requisito se decidió **reescribirlo en Go**: un simulador concurrente en Go
-refuerza el paradigma imperativo que el curso evalúa, y evita sumar un tercer lenguaje al
-despliegue. El criterio original no era malo; cambió lo que se le pide al simulador.
+## Concurrencia y determinismo a la vez
 
-### Determinista
+**Cada partida se genera en su propia goroutine.** No es decorativo: es el mismo modelo que usa el
+módulo de ingestión para procesarlas, y aquí se ve que varias partidas avanzan a la vez.
 
-Con la misma semilla sale exactamente el mismo flujo. Sin eso no se puede repetir una demo ni fijar
-un resultado esperado en una prueba.
+El determinismo se mantiene con dos decisiones:
 
-### Partidas guionadas, no solo azar
+- Cada partida recibe **su propio generador de azar**, sembrado a partir de la semilla global y de
+  su índice. Dos partidas no comparten estado, así que no hace falta ningún candado.
+- Los `eventId` **se reparten después**, cuando ya se ordenaron las partidas. Si se asignaran dentro
+  de las goroutines dependerían de cuál termina primero y el flujo dejaría de ser reproducible.
 
-Que una regla se dispare por casualidad no sirve para mostrarla. Hay tres partidas con los tiempos
+`go test -race` corre limpio, y hay una prueba que genera el mismo flujo dos veces y lo compara
+evento por evento.
+
+## Partidas guionadas
+
+Que una regla se dispare por casualidad no sirve para mostrarla. Seis partidas tienen los datos
 escritos a mano:
 
 | Partida | Qué demuestra |
 |---|---|
-| `m-sim-racing-comeback` | p3 cierra la vuelta 1 en último lugar y gana la carrera: dispara `comeback` |
+| `m-sim-racing-comeback` | p3 cierra la vuelta 1 último y gana: dispara `comeback` |
 | `m-sim-racing-penalty` | p1 es el más rápido pero los 5 s de penalización le dan la victoria a p2 |
-| `m-sim-combat-streak` | p3 elimina 3 veces en 8 s sin morir: dispara `streak`; además hay dos `revenge` |
+| `m-sim-combat-streak` | p3 elimina 3 veces en 8 s sin morir: `streak`, más dos `revenge` y una reconexión |
+| `m-sim-combat-abandono` | p5 se desconecta y no vuelve: abandono |
+| `m-sim-blackjack-tilt` | tres derrotas seguidas y la apuesta sube de 10 a 30: `tilt` |
+| `m-sim-battleship-streak` | p1 encadena cinco aciertos y hunde la flota: `hitStreak` |
 
-La segunda es la que muestra que el ganador sale de **combinar dos tipos de evento distintos**
-(`LAP_COMPLETED` + `PENALTY`) y no de uno solo.
+La segunda muestra que el ganador sale de **combinar dos tipos de evento distintos** y no de uno
+solo. Las dos de combate cubren los dos lados de la desconexión, que el análisis distingue.
 
-### Coherencia de los datos de carreras
+## Coherencia de los datos
 
-La `position` de cada vuelta **se deriva** del tiempo acumulado, no se inventa. Si p1 lleva menos
-acumulado que p2 al cerrar la vuelta 2, p1 va delante en esa vuelta. El `timestamp` de cada
-`LAP_COMPLETED` es el instante real en que ese jugador cruza la meta, o sea inicio + acumulado; por
-eso los eventos de los distintos jugadores quedan intercalados solos.
+Dos juegos tienen datos que saldrían contradictorios si se generaran al azar sin cuidado:
 
-`test_simulate.py` lo comprueba en **todas** las carreras generadas, no solo en las guionadas.
+- **Carreras**: la `position` de cada vuelta **se deriva** del tiempo acumulado, nunca se inventa.
+  El `timestamp` de cada `LAP_COMPLETED` es el instante real en que ese jugador cruza la meta, o sea
+  inicio + acumulado; por eso los eventos de los distintos jugadores quedan intercalados solos.
+- **Blackjack**: el `outcome` de cada ronda **se deduce** comparando las manos, con la misma regla
+  del as que aplica el analizador. Si alguien cambia una carta, el resultado cambia solo y no queda
+  inconsistente.
 
-### Partidas en paralelo
+Las dos propiedades se comprueban en **todas** las partidas generadas, no solo en las guionadas.
 
-Las ventanas de tiempo de las partidas se solapan, así que los eventos de distintos `matchId` salen
-intercalados en el flujo. Es lo que le da trabajo concurrente al módulo de Go, que lo pide el
-enunciado §8.
+## Desorden acotado
 
-### Desorden acotado
-
-El flujo sale desordenado a propósito, porque Go tiene que ordenar por `timestamp` antes de enviar
-el lote. Pero el desorden **nunca mueve un evento `MATCH_*`**: si un `MATCH_STARTED` quedara detrás
-de otro evento de su partida, Go lo rechazaría con `match_not_started` con toda la razón, y
-estaríamos probando un rechazo inventado por el simulador en vez de un caso real.
-
-## Un bug que encontró este simulador
-
-Al mandarle los lotes generados al analizador aparecieron "rachas" de **una** eliminación. La causa
-estaba en `CombatAnalyzer`: en Scala `List(a).sliding(3)` devuelve igual un grupo de un elemento —
-`sliding` no exige que la ventana esté completa — así que cualquier jugador con una o dos
-eliminaciones producía una racha falsa. Las pruebas del módulo no lo veían porque buscaban la racha
-con `find` y la correcta aparecía primero.
-
-Es el argumento a favor de tener datos variados: los ejemplos del contrato tienen pocos jugadores y
-no destapaban el caso.
+El flujo sale desordenado a propósito, porque la ingestión tiene que ordenar por `timestamp` antes
+de enviar el lote. Pero el desorden **nunca mueve un evento `MATCH_*`**: si un `MATCH_STARTED`
+quedara detrás de otro evento de su partida, la ingestión lo rechazaría con `match_not_started` con
+toda la razón, y estaríamos probando un rechazo inventado por el simulador en vez de un caso real.

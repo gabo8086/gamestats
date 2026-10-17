@@ -282,8 +282,9 @@ Te las digo yo para que no las descubras vos:
    `analytics` por nombre de servicio y le analiza los nueve lotes. Toma `INGEST_URL` del entorno,
    así que **descomentar el bloque debería bastar**.
 
-6. **El CI no corre las pruebas del simulador.** Son `python -m unittest` desde `simulator/`, 19
-   pruebas, menos de un segundo. `.github/` es tuyo, así que te lo dejo apuntado en vez de tocarlo.
+6. **El CI no corre las pruebas del simulador.** Ahora son `go vet ./... && go test ./...` desde
+   `simulator/`, 22 pruebas, menos de dos segundos. `.github/` es tuyo, así que te lo dejo apuntado
+   en vez de tocarlo. El `Dockerfile` ya lo compila, así que un error de compilación sí se vería.
 
 ---
 

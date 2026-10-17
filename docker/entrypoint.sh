@@ -5,7 +5,7 @@
 #   all        Go y Scala juntos, en dos procesos (por defecto)
 #   analytics  solo Scala, en ANALYTICS_PORT
 #   ingest     solo Go, en INGEST_PORT; ANALYTICS_URL dice donde esta Scala
-#   simulator  el simulador; los argumentos son los de simulate.py (--help los lista)
+#   simulator  el simulador; los argumentos los lista con -h
 #   ejemplos   manda a Go las partidas y los casos invalidos de contracts/examples/
 #
 # Los dos servicios leen el puerto de PORT. En el modo `all` corren en el mismo contenedor, asi que
@@ -45,7 +45,9 @@ case "$modo" in
   simulator)
     # Fuera de compose, Go esta en este mismo contenedor.
     export INGEST_URL="${INGEST_URL:-http://127.0.0.1:${INGEST_PORT}}"
-    exec python3 /app/simulator/simulate.py "$@"
+    # El simulador escribe en ./out; aqui es donde la imagen dejo permiso de escritura.
+    cd /app/simulator
+    exec /usr/local/bin/simulador "$@"
     ;;
 
   ejemplos)

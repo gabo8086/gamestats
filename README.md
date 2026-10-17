@@ -82,7 +82,7 @@ Una imagen no es un proceso: el primer argumento elige qué levantar
 |---|---|
 | `all` (por defecto) | Go y Scala en el mismo contenedor, en dos procesos que se hablan por HTTP |
 | `analytics` / `ingest` | uno solo de los dos servicios |
-| `simulator` | el simulador; los argumentos son los de `simulate.py` |
+| `simulator` | el simulador; los argumentos los lista con `-h` |
 | `ejemplos` | manda a Go las partidas de los cuatro juegos de `contracts/examples/` y un caso por cada razón de rechazo, y compara cada rechazo con el esperado |
 
 #### Con `docker compose` (lo normal)
@@ -211,7 +211,7 @@ Public*. Se hace una sola vez.
 ```bash
 cd ingest-go       && go vet ./... && go test -race ./... && go build ./...
 cd analytics-scala && sbt test
-cd simulator       && python -m unittest
+cd simulator       && go vet ./... && go test ./...
 ```
 
 ### Validar el contrato

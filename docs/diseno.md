@@ -155,7 +155,7 @@ Debe generar: partidas de los **cuatro** juegos **en paralelo**, varios jugadore
 
 Salida: archivos JSON y/o envío a `POST /events`. Los datos de racing deben ser coherentes (posiciones derivadas de tiempos acumulados) y los de blackjack también (el `outcome` tiene que concordar con el valor de las manos).
 
-**Estado:** hoy `simulator/` tiene un simulador en **Python** que cubre dos juegos y funciona. Se mantiene hasta que exista el reemplazo en Go, para no dejar el repo sin forma de probar el análisis; el borrado va en el PR que traiga el de Go.
+**Estado: hecho.** Cubre los cuatro juegos, genera cada partida en su propia goroutine y produce 12 partidas y 234 eventos con los valores por defecto. Las seis partidas guionadas disparan las cuatro reglas y los dos casos de desconexión. El detalle está en `simulator/README.md`.
 
 ## Fase 0 — Diseño conjunto (antes de programar)
 
@@ -303,8 +303,8 @@ cd ingest-go && go vet ./... && go test ./... && go build ./...
 # Scala
 cd analytics-scala && sbt test
 
-# Simulador (hoy en Python; pasará a Go, decisión 17)
-cd simulator && python -m unittest && python simulate.py
+# Simulador
+cd simulator && go test ./... && go run .
 
 # Contrato (requiere: pip install jsonschema)
 python contracts/validate.py
