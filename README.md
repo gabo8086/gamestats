@@ -29,7 +29,7 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 | Docker | una sola imagen para todo; `docker compose` la usa para cada servicio |
 | CI | contrato, Go, Scala, imagen y prueba de integración de punta a punta |
 | Simulador | en Python, **solo `racing` y `combat`**; el de Go con los cuatro juegos (decisión 17) está pendiente |
-| Deployment | pendiente |
+| Deployment | la imagen se publica en GitHub Container Registry (amd64 y arm64) y el CI prueba la publicada |
 
 Mientras el simulador no cubra los cuatro juegos, `blackjack` y `battleship` se prueban con las
 partidas de `contracts/examples/` (modo `ejemplos`, abajo).
@@ -143,6 +143,68 @@ solo se conocen por HTTP. Compose además los pone en contenedores separados.
 
 El costo es que cambiar una línea de Go reconstruye la imagen entera, aunque la caché de Docker
 reutiliza la etapa de Scala si su código no cambió.
+
+## Deployment: la imagen publicada
+
+Cada push a `main` publica la imagen en **GitHub Container Registry** como
+`ghcr.io/gabo8086/gamestats`, para `linux/amd64` y `linux/arm64` (las Mac con chip M). Cualquier
+persona con Docker la puede usar **sin el código y sin compilar nada**.
+
+| Tag | Qué es |
+|---|---|
+| `latest` | lo último que entró a `main` |
+| `sha-<commit>` | la imagen de un commit concreto; nunca cambia |
+| `v1.0` | la versión de la entrega; sale al empujar el tag git `v1.0` |
+
+### Para quien la quiera probar
+
+Con un solo contenedor, basta un comando:
+
+```bash
+docker run -d --name gamestats -p 8080:8080 -p 8081:8081 ghcr.io/gabo8086/gamestats:latest
+docker exec gamestats gamestats ejemplos
+curl http://localhost:8081/results/matches/m-blackjack-001
+docker rm -f gamestats
+```
+
+O con compose, cada módulo en su contenedor. Solo hace falta el archivo
+[`docker-compose.deploy.yml`](docker-compose.deploy.yml), que descarga la imagen en vez de
+construirla:
+
+```bash
+docker compose -f docker-compose.deploy.yml up -d --wait
+docker compose -f docker-compose.deploy.yml run --rm ejemplos
+docker compose -f docker-compose.deploy.yml run --rm simulator --no-files --delay-ms 0
+docker compose -f docker-compose.deploy.yml down -v
+```
+
+`GAMESTATS_TAG` elige la versión (por defecto `latest`). En PowerShell:
+`$env:GAMESTATS_TAG = "v1.0"` antes de los comandos.
+
+### Cómo se publica
+
+Los jobs `publish` y `deploy` del CI corren solo en push a `main` o en un tag `v*`, y solo si los
+cuatro jobs de pruebas pasaron. `publish` construye para las dos arquitecturas: la compilación de
+Go y de Scala corre nativa y solo la etapa final es por arquitectura, porque Go compila cruzado y
+el jar sirve en cualquiera. `deploy` levanta `docker-compose.deploy.yml` con la imagen recién
+publicada, **sin `docker login`**, manda los ejemplos y comprueba las cuatro reglas. Es
+exactamente lo que va a hacer el profe, así que si eso pasa, a él le funciona.
+
+Para la entrega:
+
+```bash
+git switch main && git pull
+git tag v1.0
+git push origin v1.0
+```
+
+El entorno de deployment que definimos es **Docker en la máquina de quien evalúa**, con la imagen
+publicada en GHCR. No hay un servidor siempre encendido.
+
+**La primera vez hay que hacer público el paquete.** GHCR crea los paquetes privados, y en ese
+caso nadie puede bajar la imagen sin login, y el job `deploy` falla a propósito. Lo cambia el dueño
+del repo (`gabo8086`): en GitHub, *Packages → gamestats → Package settings → Change visibility →
+Public*. Se hace una sola vez.
 
 ### Por módulo
 
