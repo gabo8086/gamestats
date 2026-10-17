@@ -1,7 +1,7 @@
 # Imagen unica de GameStats: ingestion (Go), analisis (Scala) y simulador, todo en una imagen.
 #
 # Multi-stage: una etapa compila Go, otra compila Scala, y la final solo trae lo necesario para
-# correr: un JRE para el jar de Scala, el binario estatico de Go y Python para el simulador.
+# correr: un JRE para el jar de Scala y los binarios estaticos de Go (ingestion y simulador).
 # Los compiladores (~1.3 GB entre los dos) no llegan a la imagen final.
 #
 # Una imagen no quiere decir un proceso: el punto de entrada (docker/entrypoint.sh) elige que
@@ -35,6 +35,14 @@ COPY ingest-go/ ./
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
     go build -trimpath -ldflags="-s -w" -o /out/ingest .
 
+# El simulador es un modulo aparte, con su propio go.mod y sin dependencias externas, asi que
+# no hace falta go mod download.
+WORKDIR /src/simulator
+COPY simulator/go.mod ./
+COPY simulator/*.go ./
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -trimpath -ldflags="-s -w" -o /out/simulador .
+
 # ---------------------------------------------------------------------------- Scala
 # El tag fija Java 21, sbt 1.13.0 y Scala 3.3.8, las mismas versiones de build.sbt.
 FROM --platform=$BUILDPLATFORM sbtscala/scala-sbt:eclipse-temurin-21.0.12_8_1.13.0_3.3.8 AS scala-build
@@ -54,10 +62,10 @@ COPY analytics-scala/src/main ./src/main
 RUN sbt assembly && mkdir -p /out && cp target/scala-*/analytics.jar /out/analytics.jar
 
 # ---------------------------------------------------------------------------- final
-# Ubuntu 24.04 con el JRE 21: trae bash y su apt tiene Python 3.12, que el simulador necesita.
+# Ubuntu 24.04 con el JRE 21: trae bash y su apt tiene Python 3.12, que usa el modo `ejemplos`.
 FROM eclipse-temurin:21-jre-noble
 
-# curl para el healthcheck y para esperar a Scala al arrancar; python3 para el simulador, que solo
+# curl para el healthcheck y para esperar a Scala al arrancar; python3 para docker/ejemplos.py, que solo
 # usa la biblioteca estandar.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl python3 \
@@ -67,7 +75,7 @@ RUN useradd --system --uid 10001 gamestats
 
 COPY --from=go-build    /out/ingest        /usr/local/bin/ingest
 COPY --from=scala-build /out/analytics.jar /app/analytics.jar
-COPY simulator/simulate.py                 /app/simulator/simulate.py
+COPY --from=go-build    /out/simulador     /usr/local/bin/simulador
 # Los ejemplos del contrato viajan en la imagen para el modo `ejemplos`: son las unicas partidas de
 # blackjack y battleship hasta que el simulador cubra los cuatro juegos.
 COPY contracts/examples/                   /app/contracts/examples/

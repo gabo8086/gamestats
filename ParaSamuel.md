@@ -282,8 +282,10 @@ Te las digo yo para que no las descubras vos:
    `analytics` por nombre de servicio y le analiza los nueve lotes. Toma `INGEST_URL` del entorno,
    así que **descomentar el bloque debería bastar**.
 
-6. **El CI no corre las pruebas del simulador.** Son `python -m unittest` desde `simulator/`, 19
-   pruebas, menos de un segundo. `.github/` es tuyo, así que te lo dejo apuntado en vez de tocarlo.
+6. **Las pruebas del simulador en el CI ya pasaron de Python a Go.** El paso sigue donde lo pusiste,
+   en el job `Contrato`, pero ahora corre `gofmt`, `go vet` y `go test -race`; el job necesita
+   `setup-go` además de `setup-python`. Lo dejé ahí y no en el job de Go para no renombrar un check
+   que el ruleset exige como obligatorio.
 
 ---
 
