@@ -254,11 +254,11 @@ detalle de cada estadística en [`diseno.md`](docs/diseno.md), y la forma exacta
 | [`diseno.md`](docs/diseno.md) | decisiones de diseño, definiciones precisas, reparto de trabajo |
 | [`contracts/event.schema.json`](contracts/event.schema.json) | el sobre común del evento |
 | [`contracts/events.md`](contracts/events.md) | catálogo de tipos de evento por juego y su justificación |
-| [`ParaSamuel.md`](ParaSamuel.md) | resumen de todas las decisiones tomadas, con el porqué |
 | [`contracts/batch.schema.json`](contracts/batch.schema.json) | el lote que Go envía a Scala |
 | [`contracts/results.md`](contracts/results.md) | forma del JSON de resultados |
 | [`contracts/rejections.md`](contracts/rejections.md) | razones de rechazo de eventos |
 | [`docs/paradigmas.md`](docs/paradigmas.md) | qué va en imperativo y qué en funcional, con ventajas y limitaciones |
+| [`docs/demo.md`](docs/demo.md) | guion de la demo, paso a paso |
 | [`docs/enunciado.md`](docs/enunciado.md) | enunciado del curso (el `.docx` original está al lado) |
 
 ## Entrega
