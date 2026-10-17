@@ -1,34 +1,36 @@
-# Levanta GameStats completo: ingestion (Go) + analisis (Scala).
+# Levanta GameStats completo: ingestion (Go) + analisis (Scala), y el simulador a pedido.
 #
-# Los dos servicios son independientes y se hablan por HTTP usando el nombre del servicio como
-# host (http://analytics:8081), nunca localhost: dentro de la red de compose cada contenedor tiene
-# su propio localhost.
+# Los tres servicios usan la MISMA imagen (el Dockerfile de la raiz) y solo cambian el modo con que
+# arrancan. Cada modulo corre en su propio contenedor y se hablan por HTTP usando el nombre del
+# servicio como host (http://analytics:8081), nunca localhost: dentro de la red de compose cada
+# contenedor tiene su propio localhost. Es lo que pide el enunciado §7: componentes independientes.
 #
-# Uso: docker compose up --build
+# Uso:
+#   docker compose up --build -d --wait            # Go + Scala
+#   docker compose run --rm simulator              # flujo del simulador (racing y combat)
+#   docker compose run --rm ejemplos               # ejemplos del contrato (los cuatro juegos)
+#   docker compose down
 
 name: gamestats
 
+# Lo comun a los servicios. Los tres declaran build para que compose construya la imagen una vez
+# (las demas salen de la cache) sin depender del orden en que arranquen.
+x-gamestats: &gamestats
+  build: .
+  image: gamestats:latest
+
 services:
   analytics:
-    build: ./analytics-scala
-    image: gamestats/analytics:dev
-    environment:
-      PORT: "8081"
+    <<: *gamestats
+    command: ["analytics"]
     ports:
       # Se publica para poder consultar GET /results/... desde la maquina durante la demo.
       - "8081:8081"
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 15s
 
   ingest:
-    build: ./ingest-go
-    image: gamestats/ingest:dev
+    <<: *gamestats
+    command: ["ingest"]
     environment:
-      PORT: "8080"
       ANALYTICS_URL: "http://analytics:8081"
     ports:
       - "8080:8080"
@@ -36,21 +38,29 @@ services:
       # Go arranca cuando Scala ya responde, para que el primer POST /analyze no se pierda.
       analytics:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-      start_period: 5s
 
-  # El simulador se agrega cuando exista codigo en simulator/ (es de Samuel). Quedara detras de un
-  # profile para que `docker compose up` normal levante solo los dos servicios:
-  #
-  # simulator:
-  #   build: ./simulator
-  #   profiles: ["sim"]
-  #   environment:
-  #     INGEST_URL: "http://ingest:8080"
-  #   depends_on:
-  #     ingest:
-  #       condition: service_healthy
+  # Detras de un profile para que `docker compose up` normal levante solo los dos servicios.
+  # `docker compose run` los levanta igual, sin pasar --profile.
+  simulator:
+    <<: *gamestats
+    # El modo va en entrypoint y no en command: `docker compose run simulator --seed 3` reemplaza
+    # el command, y el modo se perderia.
+    entrypoint: ["gamestats", "simulator"]
+    command: []
+    profiles: ["tools"]
+    environment:
+      INGEST_URL: "http://ingest:8080"
+    depends_on:
+      ingest:
+        condition: service_healthy
+
+  ejemplos:
+    <<: *gamestats
+    entrypoint: ["gamestats", "ejemplos"]
+    command: []
+    profiles: ["tools"]
+    environment:
+      INGEST_URL: "http://ingest:8080"
+    depends_on:
+      ingest:
+        condition: service_healthy

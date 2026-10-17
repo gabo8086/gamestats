@@ -20,6 +20,7 @@ python simulate.py                                   # escribe out/ con los JSON
 python simulate.py --analyze http://localhost:8081   # manda los lotes directo a Scala
 python simulate.py --post http://localhost:8080      # manda los eventos a Go, con retardo
 python -m unittest                                   # 19 pruebas
+docker compose run --rm simulator --no-files         # dentro de la imagen, contra Go
 ```
 
 Sin argumentos toma `ANALYTICS_URL` e `INGEST_URL` del entorno, que es lo que define el

@@ -1,0 +1,30 @@
+# El contexto de build es la raiz del repo: solo hace falta el codigo de los modulos, el simulador,
+# los ejemplos del contrato y docker/. Lo demas solo hace lento el build.
+.git/
+.github/
+docs/
+**/README.md
+ParaSamuel.md
+
+# Go
+ingest-go/**/*_test.go
+ingest-go/ingest
+ingest-go/ingest.exe
+
+# Scala
+analytics-scala/src/test/
+**/target/
+analytics-scala/project/project/
+analytics-scala/.bsp/
+analytics-scala/.metals/
+analytics-scala/.bloop/
+
+# Simulador
+simulator/out/
+simulator/test_simulate.py
+**/__pycache__/
+**/*.pyc
+
+Dockerfile
+docker-compose.yml
+.dockerignore
