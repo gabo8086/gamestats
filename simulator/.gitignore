@@ -1,3 +1,7 @@
 # Salida generada por simulate.py. Es determinista: con la misma semilla sale igual, asi que
 # versionarla seria guardar algo que el script reproduce en un segundo.
 out/
+
+# Binario que deja `go build` al compilar en esta carpeta.
+simulator
+simulator.exe
