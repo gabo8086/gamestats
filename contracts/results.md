@@ -1,8 +1,8 @@
 # Formato de resultados
 
-> **Estado: implementado para `racing` y `combat`; propuesta para `blackjack`, `battleship` y las estadísticas de
-> plataforma.** Con el reparto vigente el módulo Scala es de Gabriel, así que la forma la decide él, pero esto vive en
-> `contracts/` y los cambios necesitan el acuerdo de los dos. Lo nuevo son las decisiones 12 a 15 del `docs/diseno.md`.
+> **Estado: implementado.** Los cuatro juegos, el bloque `generic` y las estadísticas de plataforma están en el
+> módulo Scala y lo que sigue describe su salida real. Esto vive en `contracts/`, así que los cambios necesitan el
+> acuerdo de los dos; las decisiones 12 a 15 de `docs/diseno.md` siguen sin marcar.
 
 ## Principio de diseño
 
@@ -348,3 +348,6 @@ Cerrarlas ahora evita que las pruebas de integración fallen por decimales.
 - `avgDamage` de un jugador sin eliminaciones es `null`, no `0.0`: no hay muestras, que es distinto de un promedio cero.
 - `kd` con 0 muertes devuelve el número de eliminaciones y marca `kdUndefined: true`, para que quien consuma el JSON
   no confunda "3 eliminaciones sin morir" con "K/D de 3.0".
+- **Los ejemplos de arriba escriben `82000.0` donde la salida real dice `82000`.** La biblioteca de JSON omite el
+  `.0` de los decimales enteros. Es el mismo número y ningún parser lo distingue; se aclara para que la diferencia no
+  parezca un error al comparar a ojo.
