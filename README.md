@@ -22,16 +22,21 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 
 ## Estado
 
-**En desarrollo.** El módulo de análisis está completo para `racing` y `combat`: recibe el lote de
-una partida, calcula las estadísticas y las reglas, y expone los resultados. El módulo de ingestión
-está completo: recibe y valida eventos en `POST /events`, mantiene el estado de cada partida en su
-propia goroutine, manda el lote a Scala al recibir `MATCH_FINISHED` y expone `GET /metrics`. El
-detalle está en [`ingest-go/README.md`](ingest-go/README.md).
+| Pieza | Estado |
+|---|---|
+| Ingestión (Go) | completa: `POST /events`, validación, una goroutine por partida, envío a Scala, `GET /metrics` |
+| Análisis (Scala) | completo: los cuatro analizadores, `GenericAnalyzer`, perfil global, ranking, desconexiones |
+| Docker | una sola imagen para todo; `docker compose` la usa para cada servicio |
+| CI | contrato, Go, Scala, imagen y prueba de integración de punta a punta |
+| Simulador | en Python, **solo `racing` y `combat`**; el de Go con los cuatro juegos (decisión 17) está pendiente |
+| Deployment | pendiente |
+
+Mientras el simulador no cubra los cuatro juegos, `blackjack` y `battleship` se prueban con las
+partidas de `contracts/examples/` (modo `ejemplos`, abajo).
 
 El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos preparados para
 Jugador vs Máquina. Es una indicación **verbal** del profesor: `docs/enunciado.md` §5 no fija un
-mínimo. El contrato ya está actualizado; los analizadores de `blackjack` y `battleship` están por
-escribir.
+mínimo.
 
 Las decisiones de diseño están en la tabla de [`diseno.md`](docs/diseno.md) y **casi ninguna está
 aprobada todavía**: Samuel tiene que revisarlas.
@@ -44,6 +49,7 @@ aprobada todavía**: Samuel tiene que revisarlas.
 | [`ingest-go/`](ingest-go/) | módulo de ingestión (Go) | Samuel |
 | [`analytics-scala/`](analytics-scala/) | módulo de análisis (Scala) | Gabriel |
 | [`simulator/`](simulator/) | fuente de eventos simulada | Gabriel |
+| [`docker/`](docker/) | punto de entrada, healthcheck y envío de ejemplos de la imagen | Samuel |
 | [`docs/`](docs/) | enunciado del curso | ambos |
 
 Cambios en `contracts/` requieren aprobación de los dos: todo lo demás depende de esos archivos.
@@ -58,32 +64,92 @@ Cambios en `contracts/` requieren aprobación de los dos: todo lo demás depende
 | Docker + Compose | reciente | levantar todo integrado |
 | Python + `jsonschema` | 3.12+ | validar los ejemplos del contrato |
 
-Para correr solo con Docker basta Docker: las versiones de Go, JDK y sbt están fijadas en los
-Dockerfiles.
+Para correr solo con Docker basta Docker: las versiones de Go, JDK, sbt y Python están fijadas en
+el `Dockerfile`, y el simulador corre dentro de la imagen.
 
 ## Ejecución
 
-### Todo integrado
+### Docker: una sola imagen
+
+El [`Dockerfile`](Dockerfile) de la raíz produce **una imagen** con los dos módulos y el
+simulador. Es multi-stage: una etapa compila Go, otra compila Scala, y la final solo trae un JRE,
+el binario de Go, el jar de Scala y Python para el simulador (~500 MB).
+
+Una imagen no es un proceso: el primer argumento elige qué levantar
+([`docker/entrypoint.sh`](docker/entrypoint.sh)).
+
+| Modo | Qué levanta |
+|---|---|
+| `all` (por defecto) | Go y Scala en el mismo contenedor, en dos procesos que se hablan por HTTP |
+| `analytics` / `ingest` | uno solo de los dos servicios |
+| `simulator` | el simulador; los argumentos son los de `simulate.py` |
+| `ejemplos` | manda a Go las partidas de los cuatro juegos de `contracts/examples/` y un caso por cada razón de rechazo, y compara cada rechazo con el esperado |
+
+#### Con `docker compose` (lo normal)
+
+Compose corre la misma imagen tres veces, cada módulo en su contenedor:
 
 ```bash
-docker compose up --build
-curl http://localhost:8080/health    # ingestión (Go)
-curl http://localhost:8081/health    # análisis (Scala)
-
-# Mandar el flujo del simulador a Go y ver qué entró
-python3 simulator/simulate.py --post http://localhost:8080 --delay-ms 0 --no-files
-curl http://localhost:8080/metrics
-curl http://localhost:8081/results/matches/m-sim-racing-comeback
+docker compose up --build -d --wait            # Go (8080) + Scala (8081), espera a que estén sanos
+docker compose run --rm ejemplos               # los cuatro juegos + los rechazos
+docker compose run --rm simulator --no-files --delay-ms 0   # flujo del simulador (racing y combat)
+docker compose logs -f ingest                  # ver cómo Go manda cada lote a Scala
+docker compose down                            # bajar todo
 ```
 
+#### Con un solo contenedor
+
+```bash
+docker build -t gamestats .
+docker run -d --name gamestats -p 8080:8080 -p 8081:8081 gamestats
+docker exec gamestats gamestats ejemplos
+docker exec gamestats gamestats simulator --no-files --delay-ms 0
+docker rm -f gamestats
+```
+
+Si uno de los dos procesos se cae, el contenedor termina con error en vez de quedar con medio
+sistema vivo. El healthcheck de la imagen revisa los servicios del modo con que arrancó.
+
+#### Qué consultar
+
+```bash
+curl http://localhost:8080/health                               # ingestión (Go)
+curl http://localhost:8081/health                               # análisis (Scala)
+curl http://localhost:8080/metrics                              # eventos recibidos, rechazos por razón
+curl http://localhost:8081/results/matches/m-racing-001         # regla comeback
+curl http://localhost:8081/results/matches/m-combat-001         # reglas streak y revenge
+curl http://localhost:8081/results/matches/m-blackjack-001      # regla tilt
+curl http://localhost:8081/results/matches/m-battleship-001     # regla hitStreak
+curl http://localhost:8081/results/players/p1                   # perfil global del jugador
+curl http://localhost:8081/results/games/combat/ranking         # ranking por juego
+curl http://localhost:8081/results/matches/m-sim-racing-comeback   # una del simulador
+```
+
+En PowerShell, `curl` es un alias de otra cosa: usar `curl.exe` o `Invoke-RestMethod`.
+
+`ejemplos` está pensado para un sistema recién levantado: si se corre dos veces, la segunda los
+eventos ya existen y Go los rechaza con `duplicate_event`, que es lo correcto.
+
 Dentro de Compose los servicios se llaman por nombre (`http://analytics:8081`), nunca `localhost`:
-cada contenedor tiene su propio `localhost`.
+cada contenedor tiene su propio `localhost`. En el modo `all` sí es `127.0.0.1`, porque los dos
+procesos comparten contenedor.
+
+#### Por qué una imagen y no tres
+
+Un solo `Dockerfile` es un solo lugar donde fijar versiones, y una sola imagen que publicar y
+desplegar. Lo que el enunciado §7 pide —que Go y Scala sean **componentes independientes** que se
+comunican por un mecanismo definido— se mantiene: siguen siendo dos programas, en dos procesos, que
+solo se conocen por HTTP. Compose además los pone en contenedores separados.
+
+El costo es que cambiar una línea de Go reconstruye la imagen entera, aunque la caché de Docker
+reutiliza la etapa de Scala si su código no cambió.
 
 ### Por módulo
 
 ```bash
 cd ingest-go       && go vet ./... && go test -race ./... && go build ./...
 cd analytics-scala && sbt test
+cd simulator       && python -m unittest
 ```
 
 ### Validar el contrato

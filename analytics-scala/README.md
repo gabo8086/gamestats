@@ -1,12 +1,8 @@
 # analytics-scala — módulo de análisis
 
-> **Responsable: Gabriel.** El módulo funciona de punta a punta para `racing` y `combat`: recibe el
-> lote de una partida, la analiza y expone los resultados.
->
-> **Pendiente tras el cambio de requisito del 9 de octubre de 2026:** los analizadores de
-> `blackjack` y `battleship`, el `GenericAnalyzer` y las estadísticas globales (perfil del jugador,
-> ranking por juego, desconexiones, win rate contra bots). El contrato de todo eso ya está escrito
-> en `../contracts/events.md` y `../contracts/results.md`.
+> **Responsable: Gabriel.** El módulo está completo para los cuatro juegos (`racing`, `combat`,
+> `blackjack`, `battleship`): recibe el lote de una partida, la analiza con su analizador y con el
+> `GenericAnalyzer`, y expone los resultados por partida, por jugador y el ranking por juego.
 
 Convierte el lote de eventos de una partida en estadísticas y patrones. Es la parte **funcional** del
 proyecto: datos inmutables, funciones puras y transformaciones de colecciones.
@@ -16,7 +12,7 @@ proyecto: datos inmutables, funciones puras y transformaciones de colecciones.
 ```bash
 sbt test       # pruebas (MUnit)
 sbt compile    # compilar
-sbt assembly   # jar único, el que usa el Dockerfile
+sbt assembly   # jar único, el que usa el Dockerfile de la raíz
 sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 ```
 
@@ -39,7 +35,8 @@ sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 | `ResultStore.scala` | lo analizado hasta ahora, en memoria |
 | `Main.scala` | los endpoints: el borde HTTP |
 
-Las pruebas van en `src/test/.../{Config,Health,Batch,Analyzer,ResultStore}Suite.scala`: **47 en total**.
+Las pruebas van en `src/test/scala/gamestats/analytics/*Suite.scala` (una suite por juego, más las del
+modelo, el almacén y las estadísticas globales): **116 en total**.
 
 ## Endpoints
 
@@ -48,6 +45,7 @@ Las pruebas van en `src/test/.../{Config,Health,Batch,Analyzer,ResultStore}Suite
 | `POST /analyze` | recibe el lote de una partida, lo analiza, lo guarda y lo devuelve |
 | `GET /results/matches/{matchId}` | el resultado de una partida analizada, 404 si no está |
 | `GET /results/players/{playerId}` | el agregado del jugador, 404 si no aparece en ninguna |
+| `GET /results/games/{gameId}/ranking?top=N` | los N mejores del juego (10 por defecto), 404 si no hay partidas |
 | `GET /health` | para `docker compose` y el CI |
 
 `POST /analyze` responde 400 en dos casos distintos: el lote no cumple el contrato, o el `gameId`
@@ -122,7 +120,7 @@ classes para el modelo, `Option` / `Either` en vez de excepciones, y el análisi
 ## Versiones
 
 Scala **3.3.8** (última de la línea LTS), sbt **1.13.0**, MUnit **1.3.6**, Java **21**, cask
-**0.11.3** y upickle **4.4.3**. El tag de la imagen de Docker fija las mismas versiones de Java, sbt
+**0.11.3** y upickle **4.4.3**. El tag de la etapa de Scala del `Dockerfile` de la raíz fija las mismas versiones de Java, sbt
 y Scala, para que lo que compila en la máquina sea lo que compila en el contenedor.
 
 ## Decisión 9: por qué cask + upickle

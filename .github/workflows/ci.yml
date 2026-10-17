@@ -36,6 +36,11 @@ jobs:
       - name: Validar ejemplos contra los esquemas
         run: python contracts/validate.py
 
+      # El simulador es la fuente de datos del contrato: si genera algo fuera de el, que se sepa aqui.
+      - name: Pruebas del simulador
+        working-directory: simulator
+        run: python -m unittest
+
   go:
     name: Go (ingest)
     runs-on: ubuntu-latest
@@ -97,7 +102,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Construir las imagenes
+      # Una sola imagen (el Dockerfile de la raiz); compose la usa para todos los servicios.
+      - name: Construir la imagen
         run: docker compose build
 
       # Prueba de humo: los dos servicios arrancan y responden /health.
@@ -107,8 +113,28 @@ jobs:
           curl -fsS http://localhost:8080/health
           curl -fsS http://localhost:8081/health
 
-      # TODO (Fase 3): prueba de integracion de verdad -- enviar contracts/examples/racing-match-ok.json
-      # a POST /events y comprobar el JSON de GET /results/matches/m-racing-001.
+      # Integracion de punta a punta: los ejemplos del contrato entran por Go, que los manda a Scala.
+      # El modo ejemplos falla si algun rechazo no es el que espera el contrato.
+      - name: Ejemplos del contrato por Go
+        run: docker compose run --rm ejemplos
+
+      # Go manda el lote a Scala en segundo plano al recibir MATCH_FINISHED, de ahi el reintento.
+      - name: Las cuatro reglas en los resultados
+        run: |
+          resultado() {
+            curl -fsS --retry 10 --retry-all-errors --retry-delay 1 "http://localhost:8081/results/matches/$1"
+          }
+          resultado m-racing-001     | grep -q '"rule":"comeback"'
+          resultado m-combat-001     | grep -q '"rule":"streak"'
+          resultado m-blackjack-001  | grep -q '"rule":"tilt"'
+          resultado m-battleship-001 | grep -q '"rule":"hitStreak"'
+
+      - name: Simulador por Go
+        run: |
+          docker compose run --rm simulator --no-files --delay-ms 0
+          curl -fsS --retry 10 --retry-all-errors --retry-delay 1 \
+            http://localhost:8081/results/matches/m-sim-combat-streak | grep -q '"rule":"streak"'
+          curl -fsS http://localhost:8080/metrics
 
       - name: Logs si algo fallo
         if: failure()

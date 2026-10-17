@@ -41,7 +41,7 @@ simulador ──JSON──> [ Go: ingestión ] ──HTTP/JSON──> [ Scala: a
 ```
 
 - Comunicación entre módulos: **HTTP/REST con JSON** (decisión propuesta; confirmar en Fase 0 y documentar el porqué).
-- Go y Scala son servicios independientes, cada uno con su Dockerfile, orquestados con `docker-compose`.
+- Go y Scala son servicios independientes que se hablan solo por HTTP. Se empaquetan en **una sola imagen** (el `Dockerfile` de la raíz) y `docker-compose` corre cada uno en su contenedor a partir de ella.
 - Dentro de Docker Compose los servicios se llaman por nombre (`http://analytics:8081`), nunca `localhost`.
 
 ### Go (`ingest-go/`) — qué hace y qué NO hace
@@ -277,7 +277,7 @@ Adaptado al estado real del repo: lo tachado ya está en `main`.
 
 La documentación se escribe durante los cuatro días, no al final.
 
-De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); falta el Día 4: el simulador en docker-compose, sus pruebas y la prueba de integración en el CI, y el deployment.
+De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análisis está completo. De la columna de Samuel están hechos los Días 1 a 3 (ingestión, validación, goroutine por partida, envío a Scala y `GET /metrics`, documentado en `ingest-go/README.md`); del Día 4 están la imagen única, el simulador en docker-compose, sus pruebas y la prueba de integración en el CI; falta el deployment.
 
 ## Flujo de git
 
@@ -288,10 +288,10 @@ De la columna de Gabriel solo falta el **simulador en Go**; el módulo de análi
 
 ## Docker y CI/CD
 
-- Un Dockerfile por módulo, con **multi-stage build** (compilar en una imagen y copiar el resultado a una imagen mínima).
-- `docker-compose.yml` en la raíz levanta Go + Scala (y el simulador como servicio opcional).
+- **Un solo `Dockerfile`** en la raíz, con **multi-stage build**: una etapa compila Go, otra Scala, y la final solo trae el JRE, los dos ejecutables y Python para el simulador. El primer argumento elige el modo (`all`, `analytics`, `ingest`, `simulator`, `ejemplos`); el porqué de una imagen en vez de tres está en el `README.md`.
+- `docker-compose.yml` en la raíz levanta Go + Scala desde esa imagen, y el simulador y los ejemplos como servicios opcionales (`docker compose run`).
 - Pipeline en GitHub Actions (`.github/workflows/`):
-  - En cada PR: `go vet` + `go test` + `go build`; `sbt test` + `sbt assembly`; validación de los ejemplos contra los esquemas; `docker compose build` y prueba de humo de `/health`.
+  - En cada PR: `go vet` + `go test` + `go build`; `sbt test` + `sbt assembly`; validación de los ejemplos contra los esquemas y pruebas del simulador; `docker compose build`, prueba de humo de `/health` y prueba de integración (ejemplos y simulador por Go, comprobando las cuatro reglas en los resultados).
   - En merge a `main`: construir imágenes, publicar en GHCR y desplegar (entorno por decidir en Fase 3).
 
 ## Comandos
@@ -331,9 +331,9 @@ curl http://localhost:8081/health   # análisis
 - [x] Especificación del formato de eventos — `contracts/event.schema.json` y `contracts/events.md`
 - [x] Descripción de los juegos y justificación de los eventos — `contracts/events.md`
 - [ ] Descripción de estadísticas y reglas — definiciones en este archivo y formas de salida en `contracts/results.md`; falta el documento final
-- [x] Dockerfiles y docker-compose
+- [x] Dockerfile (imagen única) y docker-compose
 - [x] Configuración del pipeline CI/CD — falta la parte de deployment (Fase 3)
-- [ ] Documentación de instalación, ejecución y deployment — `README.md` cubre instalación y ejecución
+- [ ] Documentación de instalación, ejecución y deployment — `README.md` cubre instalación y ejecución con Docker; falta deployment
 - [ ] Demo funcional
 - [x] Justificación de qué va en imperativo (Go) y qué en funcional (Scala), con ventajas y limitaciones de cada enfoque — [`paradigmas.md`](paradigmas.md)
 
