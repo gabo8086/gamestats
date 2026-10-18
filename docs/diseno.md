@@ -347,11 +347,14 @@ curl http://localhost:8081/health   # análisis
 - [ ] Demo funcional
 - [x] Justificación de qué va en imperativo (Go) y qué en funcional (Scala), con ventajas y limitaciones de cada enfoque — [`paradigmas.md`](paradigmas.md)
 
-## Pendiente administrativo
+## Entrega
 
-El enunciado §14 dice "Fecha de entrega: domingo 18 de Setiembre de 2026", una fecha que ya pasó.
-Es un error de tipeo en el documento del curso. **Confirmar la fecha real con el profesor.**
+**Domingo 18 de octubre de 2026, antes de las 10:00 p. m.**, por el Tec Digital. La fecha la
+confirmó el profesor; la del §14 del enunciado ("18 de Setiembre") es un error de tipeo del
+documento del curso.
 
-El mínimo de **4 juegos** también es verbal y no está en `docs/enunciado.md`. Vale la pena pedirle
-al profesor que lo confirme por escrito, aunque sea en un correo: es el requisito que más trabajo
-agregó al proyecto y ahora mismo no hay dónde señalarlo. En la misma consulta entra la fecha.
+Se entrega la versión **`v1.2`**, publicada como `ghcr.io/gabo8086/gamestats:v1.2`. El guion de la
+demo está en [`demo.md`](demo.md).
+
+El mínimo de **4 juegos** es una indicación verbal del profesor y no está en el enunciado escrito;
+queda anotado arriba, en la sección de juegos, por si lo preguntan en la defensa.

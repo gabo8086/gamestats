@@ -264,5 +264,13 @@ detalle de cada estadística en [`diseno.md`](docs/diseno.md), y la forma exacta
 
 ## Entrega
 
-El enunciado §14 dice *"domingo 18 de Setiembre de 2026"*, fecha que ya pasó: es un error de tipeo
-en el documento. **Confirmar la fecha real con el profesor.**
+**Domingo 18 de octubre de 2026, antes de las 10:00 p. m.**, por el Tec Digital. La fecha la
+confirmó el profesor; la del §14 del enunciado es un error de tipeo.
+
+Versión entregada: **`v1.2`**.
+
+```bash
+docker run -d --name gamestats -p 8080:8080 -p 8081:8081 ghcr.io/gabo8086/gamestats:v1.2
+docker exec gamestats gamestats ejemplos
+docker rm -f gamestats
+```
