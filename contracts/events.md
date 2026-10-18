@@ -1,7 +1,7 @@
 # Catálogo de eventos
 
-> **Estado: propuesta.** Los cuatro juegos y los campos `matchMode` / `playerType` son las
-> decisiones 12 a 15 de la tabla del `docs/diseno.md` y están **pendientes de revisión de Samuel**.
+> **Estado: implementado.** Los cuatro juegos y los campos `matchMode` / `playerType` están en el
+> contrato, en los dos módulos y en los ejemplos de `examples/`.
 
 El sobre común está en [`event.schema.json`](event.schema.json) y es **cerrado**: un campo que no
 esté en él se rechaza con `unknown_field`. Lo específico de cada juego viaja dentro de `data`, que

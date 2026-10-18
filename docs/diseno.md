@@ -188,7 +188,7 @@ Leyenda de "Aprueba": **A** = ambos, porque toca el contrato compartido o el rep
 | 14 | **Formatos de los juegos nuevos** | Carta `"10H"`, `to` = `playerId` del receptor, `outcome` ∈ {`WIN`,`LOSE`,`PUSH`,`BLACKJACK`,`BUST`}, `payout` con signo; `coord` `"A1"`–`"J10"`, tablero 10×10, flota estándar de 5 barcos | A | ⬜ |
 | 15 | **Desconexiones** | `PLAYER_DISCONNECTED` / `PLAYER_RECONNECTED` como eventos generales; reconexión si vuelve en **≤ 60 s**, abandono si no. Razón de rechazo `reconnect_without_disconnect`, opcional | A | ⬜ |
 | 16 | **`GET /metrics` en Go** | Eventos recibidos, válidos, inválidos por razón de rechazo y partidas activas | S | ⬜ |
-| 17 | **Simulador en Go** | Se reescribe en Go el simulador que hoy está en Python; sigue siendo de Gabriel | G | ✅ |
+| 17 | **Simulador en Go** | Se reescribió en Go el simulador, que antes estaba en Python; siguió siendo de Gabriel | G | ✅ |
 
 Dos cosas quedaron decididas al armar el andamiaje y conviene dejarlas explícitas. Con el reparto nuevo las dos caen del lado de Gabriel:
 

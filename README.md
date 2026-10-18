@@ -28,18 +28,15 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 | Análisis (Scala) | completo: los cuatro analizadores, `GenericAnalyzer`, perfil global, ranking, desconexiones |
 | Docker | una sola imagen para todo; `docker compose` la usa para cada servicio |
 | CI | contrato, Go, Scala, imagen y prueba de integración de punta a punta |
-| Simulador | en Python, **solo `racing` y `combat`**; el de Go con los cuatro juegos (decisión 17) está pendiente |
+| Simulador | en Go, los cuatro juegos: una goroutine por partida, 12 partidas y 234 eventos, determinista |
 | Deployment | la imagen se publica en GitHub Container Registry (amd64 y arm64) y el CI prueba la publicada |
-
-Mientras el simulador no cubra los cuatro juegos, `blackjack` y `battleship` se prueban con las
-partidas de `contracts/examples/` (modo `ejemplos`, abajo).
 
 El 9 de octubre de 2026 el requisito pasó de dos juegos a **cuatro**, con dos preparados para
 Jugador vs Máquina. Es una indicación **verbal** del profesor: `docs/enunciado.md` §5 no fija un
 mínimo.
 
-Las decisiones de diseño están en la tabla de [`diseno.md`](docs/diseno.md) y **casi ninguna está
-aprobada todavía**: Samuel tiene que revisarlas.
+El registro de diseño, con la definición exacta de cada estadística y cada regla, está en
+[`diseno.md`](docs/diseno.md).
 
 ## Estructura
 
