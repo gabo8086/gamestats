@@ -353,7 +353,7 @@ curl http://localhost:8081/health   # análisis
 confirmó el profesor; la del §14 del enunciado ("18 de Setiembre") es un error de tipeo del
 documento del curso.
 
-Se entrega la versión **`v1.2`**, publicada como `ghcr.io/gabo8086/gamestats:v1.2`. El guion de la
+Se entrega la versión **`v1.3`**, publicada como `ghcr.io/gabo8086/gamestats:v1.3`. El guion de la
 demo está en [`demo.md`](demo.md).
 
 El mínimo de **4 juegos** es una indicación verbal del profesor y no está en el enunciado escrito;
