@@ -209,7 +209,7 @@ Dos cosas quedaron decididas al armar el andamiaje y conviene dejarlas explícit
 - **Vuelta rápida de la carrera (racing):** el menor `lapTimeMs` de toda la partida, con el jugador que lo hizo.
 - **Valor de una mano (blackjack):** `foldLeft` sobre las cartas. Cada as suma 11 y el resto su valor (figuras 10); mientras el total pase de 21 y queden ases contados como 11, se le restan 10. Por eso el acumulador lleva el total **y** la cantidad de ases.
 - **Tilt (blackjack):** tras tres `ROUND_RESULT` consecutivos del mismo jugador con `outcome` en {`LOSE`, `BUST`}, el `BET_PLACED` de la ronda siguiente es **mayor** que el de la última ronda perdida.
-- **% de pasarse de 21 (blackjack):** rondas con `outcome: "BUST"` sobre rondas jugadas.
+- **% de pasarse de 21 (blackjack):** rondas cuya **mano reconstruida** supera 21, sobre rondas jugadas. Se deriva del `foldLeft` y no se lee del `outcome`; una prueba comprueba que ambas vías coinciden.
 - **Saldo neto (blackjack):** suma de los `payout`. El saldo del crupier es su negativo.
 - **Precisión (battleship):** `SHOT_FIRED` con `hit: true` sobre el total de disparos del jugador.
 - **Barcos hundidos por un jugador (battleship):** los `SHIP_SUNK` cuyo `playerId` es **otro** jugador, porque ese campo lleva al dueño del barco.
@@ -340,7 +340,7 @@ curl http://localhost:8081/health   # análisis
 - [x] Código fuente Go y Scala — los cuatro analizadores, el `GenericAnalyzer` y las estadísticas globales en Scala; ingestión completa en Go
 - [x] Especificación del formato de eventos — `contracts/event.schema.json` y `contracts/events.md`
 - [x] Descripción de los juegos y justificación de los eventos — `contracts/events.md`
-- [ ] Descripción de estadísticas y reglas — definiciones en este archivo y formas de salida en `contracts/results.md`; falta el documento final
+- [x] Descripción de estadísticas y reglas — [`estadisticas.md`](estadisticas.md)
 - [x] Dockerfile (imagen única) y docker-compose
 - [x] Configuración del pipeline CI/CD — pruebas, integración, publicación en GHCR y prueba de la imagen publicada
 - [x] Documentación de instalación, ejecución y deployment — `README.md`
