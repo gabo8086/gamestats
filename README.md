@@ -258,6 +258,7 @@ detalle de cada estadística en [`diseno.md`](docs/diseno.md), y la forma exacta
 | [`contracts/results.md`](contracts/results.md) | forma del JSON de resultados |
 | [`contracts/rejections.md`](contracts/rejections.md) | razones de rechazo de eventos |
 | [`docs/paradigmas.md`](docs/paradigmas.md) | qué va en imperativo y qué en funcional, con ventajas y limitaciones |
+| [`docs/estadisticas.md`](docs/estadisticas.md) | qué calcula el sistema, cómo y por qué |
 | [`docs/demo.md`](docs/demo.md) | guion de la demo, paso a paso |
 | [`docs/enunciado.md`](docs/enunciado.md) | enunciado del curso (el `.docx` original está al lado) |
 
