@@ -11,7 +11,7 @@ Bajá la imagen **antes** de la presentación: la primera vez tarda unos 30 s y 
 en vivo.
 
 ```bash
-docker pull ghcr.io/gabo8086/gamestats:v1.3
+docker pull ghcr.io/gabo8086/gamestats:v1.4
 ```
 
 Tené dos ventanas listas: una terminal y un navegador. **Usá Firefox**, que formatea el JSON solo;
@@ -23,7 +23,7 @@ si vas a mostrar resultados en la terminal, mirá antes la sección
 ## 1. Un comando levanta todo el sistema
 
 ```bash
-docker run -d --name gamestats -p 8080:8080 -p 8081:8081 ghcr.io/gabo8086/gamestats:v1.3
+docker run -d --name gamestats -p 8080:8080 -p 8081:8081 ghcr.io/gabo8086/gamestats:v1.4
 curl http://localhost:8080/health
 curl http://localhost:8081/health
 ```
