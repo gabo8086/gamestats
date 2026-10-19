@@ -250,10 +250,10 @@ for r in d['ranking']:
 "
 ```
 
-**Si preguntan por qué no hay una interfaz gráfica:** el §6.2 pide un formato estructurado y nombra
-JSON; "mostrados en una interfaz" es una de tres alternativas de uso posterior, unidas por "o", y el
-§9.10 pide "consultar **o** presentar". Los endpoints son el "consultar". Una interfaz sería trabajo
-sobre el entregable, no parte de él.
+**Si preferís mostrarlo sin terminal**, abrí **<http://localhost:8081/>**: hay una interfaz de solo
+lectura con el listado de partidas, el detalle de cada una con sus reglas, el perfil de un jugador y
+el ranking. Es una página estática que consume estos mismos endpoints; el formato del sistema sigue
+siendo JSON, como pide el §6.2.
 
 ## Cerrar
 

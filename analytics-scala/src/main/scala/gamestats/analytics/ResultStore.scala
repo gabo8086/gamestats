@@ -33,6 +33,23 @@ final class ResultStore:
   def partida(matchId: String): Option[MatchResult] =
     partidas.get.get(matchId).map(_.resultado)
 
+  /** Las partidas analizadas, ordenadas por identificador para que el listado sea estable. */
+  def listado: MatchList =
+    MatchList(
+      partidas.get.values.toList
+        .map(_.resultado)
+        .sortBy(_.matchId)
+        .map(r =>
+          MatchListItem(
+            matchId = r.matchId,
+            gameId = r.gameId,
+            winnerId = r.matchSummary.winnerId,
+            eventCount = r.eventCount,
+            patterns = r.patterns.map(_.rule).distinct
+          )
+        )
+    )
+
   /** Agregado de un jugador a traves de todas las partidas donde aparece.
     *
     * `None` cuando no aparece en ninguna, que es el 404 del contrato. Lo propio de cada juego se

@@ -46,6 +46,23 @@ object Main extends cask.MainRoutes:
     */
   override def host: String = "0.0.0.0"
 
+  /** Interfaz de solo lectura.
+    *
+    * Es una pagina estatica que consume los mismos endpoints JSON desde el navegador; no hay
+    * estado ni logica de negocio aqui. Si falla, los endpoints siguen funcionando igual, que es
+    * por lo que se hizo asi y no metiendo plantillas en el analisis.
+    */
+  @cask.get("/")
+  def interfaz(): cask.Response[String] =
+    cask.Response(
+      paginaUI,
+      headers = Seq("Content-Type" -> "text/html; charset=utf-8")
+    )
+
+  /** Se lee una vez del jar y se reusa. */
+  private lazy val paginaUI: String =
+    scala.io.Source.fromResource("ui.html")(scala.io.Codec.UTF8).mkString
+
   @cask.get("/health")
   def health(): cask.Response[String] =
     json(Health(status = "ok", service = "analytics-scala"))
@@ -74,6 +91,10 @@ object Main extends cask.MainRoutes:
             val resultado = analizador.analizar(lote, reloj)
             resultados.guardar(resultado, lote)
             json(resultado)
+
+  /** Listado de lo analizado. Lo usa la interfaz para saber que hay antes de pedir el detalle. */
+  @cask.get("/results/matches")
+  def listadoDePartidas(): cask.Response[String] = json(resultados.listado)
 
   @cask.get("/results/matches/:matchId")
   def resultadoDePartida(matchId: String): cask.Response[String] =

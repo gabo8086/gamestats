@@ -62,7 +62,8 @@ Preferir la biblioteca estándar (`net/http`, `encoding/json`, `sync`). Tratar `
 3. Calcular estadísticas y reglas con operaciones funcionales.
 4. Calcular con el `GenericAnalyzer` lo que **no depende de ningún juego**, usando solo el sobre común: distribución por tipo de evento y actividad por minuto. Un juego nuevo trae esas métricas gratis.
 5. Calcular las estadísticas globales que cruzan partidas y juegos: perfil del jugador, ranking por juego, desconexiones y win rate contra bots frente a contra humanos.
-6. Producir resultados JSON y exponerlos (`GET /results/matches/{matchId}`, `GET /results/players/{playerId}`, `GET /results/games/{gameId}/ranking`). Forma exacta en `contracts/results.md`.
+6. Producir resultados JSON y exponerlos (`GET /results/matches/{matchId}`, `GET /results/players/{playerId}`, `GET /results/games/{gameId}/ranking`, más `GET /results/matches` para listarlos). Forma exacta en `contracts/results.md`.
+7. Servir en `GET /` una interfaz de solo lectura. Es una página estática que consume esos mismos endpoints desde el navegador: no agrega dependencias ni lógica, y si falla, el resto del módulo sigue igual. El formato del sistema sigue siendo JSON, que es lo que pide el enunciado §6.2.
 
 Reglas de estilo Scala: sin `var`, sin colecciones mutables, sin `null`, `sealed trait` + case classes, funciones puras para el análisis y el IO (HTTP, JSON) aislado en los bordes. Usar `Option`/`Either` en vez de excepciones.
 

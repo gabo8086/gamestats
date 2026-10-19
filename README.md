@@ -26,6 +26,7 @@ objetivo académico (§13) es poder justificar por qué cada parte encaja con su
 |---|---|
 | Ingestión (Go) | completa: `POST /events`, validación, una goroutine por partida, envío a Scala, `GET /metrics` |
 | Análisis (Scala) | completo: los cuatro analizadores, `GenericAnalyzer`, perfil global, ranking, desconexiones |
+| Interfaz | página de solo lectura en `http://localhost:8081/`, sobre los mismos endpoints JSON |
 | Docker | una sola imagen para todo; `docker compose` la usa para cada servicio |
 | CI | contrato, Go, Scala, imagen y prueba de integración de punta a punta |
 | Simulador | en Go, los cuatro juegos: una goroutine por partida, 12 partidas y 234 eventos, determinista |

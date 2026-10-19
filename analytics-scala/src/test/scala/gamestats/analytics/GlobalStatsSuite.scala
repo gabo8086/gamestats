@@ -87,6 +87,27 @@ class GlobalStatsSuite extends munit.FunSuite:
     store.guardar(CombatAnalyzer.analizar(tarde, Reloj), tarde)
     assertEquals(store.jugador("p2").get.disconnections, Desconexiones(reconnections = 0, abandons = 1))
 
+  // ------------------------------------------------- listado para la interfaz
+
+  test("el listado trae una fila por partida, ordenada por identificador"):
+    val filas = almacen.listado.matches
+    assertEquals(filas.map(_.matchId), List("m-combat-001", "m-combat-002", "m-racing-001"))
+    assertEquals(filas.map(_.gameId), List("combat", "combat", "racing"))
+
+  test("cada fila resume lo justo para una lista"):
+    val carrera = almacen.listado.matches.find(_.matchId == "m-racing-001").get
+    assertEquals(carrera.winnerId, Some("p3"))
+    assertEquals(carrera.eventCount, 15)
+    assertEquals(carrera.patterns, List("comeback"))
+
+  test("las reglas repetidas se listan una sola vez"):
+    // En la partida contra bots hay dos venganzas; en el listado 'revenge' aparece una vez.
+    val conBots = almacen.listado.matches.find(_.matchId == "m-combat-002").get
+    assertEquals(conBots.patterns.distinct, conBots.patterns)
+
+  test("un almacen vacio devuelve una lista vacia, no un error"):
+    assertEquals(ResultStore().listado.matches, Nil)
+
   // ------------------------------------------------- ranking
 
   test("el ranking ordena por victorias y desempata por porcentaje"):
