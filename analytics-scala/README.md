@@ -34,6 +34,7 @@ sbt run        # levantar local en el puerto 8081 (PORT lo cambia)
 | `GenericAnalyzer.scala` | lo que sale solo del sobre, sin conocer el juego |
 | `ResultStore.scala` | lo analizado hasta ahora, en memoria |
 | `Main.scala` | los endpoints: el borde HTTP |
+| `resources/ui.html` | la interfaz de solo lectura, una sola página sin dependencias |
 
 Las pruebas van en `src/test/scala/gamestats/analytics/*Suite.scala` (una suite por juego, más las del
 modelo, el almacén y las estadísticas globales): **116 en total**.
@@ -42,11 +43,18 @@ modelo, el almacén y las estadísticas globales): **116 en total**.
 
 | Método y ruta | Qué hace |
 |---|---|
+| `GET /` | interfaz de solo lectura, una página estática que consume los endpoints de abajo |
 | `POST /analyze` | recibe el lote de una partida, lo analiza, lo guarda y lo devuelve |
+| `GET /results/matches` | listado de lo analizado; lo usa la interfaz para saber qué hay |
 | `GET /results/matches/{matchId}` | el resultado de una partida analizada, 404 si no está |
 | `GET /results/players/{playerId}` | el agregado del jugador, 404 si no aparece en ninguna |
 | `GET /results/games/{gameId}/ranking?top=N` | los N mejores del juego (10 por defecto), 404 si no hay partidas |
 | `GET /health` | para `docker compose` y el CI |
+
+La interfaz vive en `src/main/resources/ui.html` y se sirve tal cual: sin plantillas, sin estado y
+sin dependencias nuevas. Consume los mismos endpoints JSON que cualquier otro cliente, así que si
+la página fallara, el resto del módulo sigue intacto. Solo habla con este servicio, de modo que no
+hay peticiones entre orígenes.
 
 `POST /analyze` responde 400 en dos casos distintos: el lote no cumple el contrato, o el `gameId`
 no tiene analizador. El segundo le dice a Go que mandó un juego que este módulo todavía no conoce,

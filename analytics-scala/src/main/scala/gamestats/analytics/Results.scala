@@ -113,5 +113,18 @@ final case class GameSummary(
 
 final case class MatchRef(matchId: String, gameId: String, winner: Boolean) derives ReadWriter
 
+/** Una fila del listado de partidas analizadas. Es lo justo para poblar una lista sin tener que
+  * pedir el resultado completo de cada una.
+  */
+final case class MatchListItem(
+    matchId: String,
+    gameId: String,
+    winnerId: Option[String],
+    eventCount: Int,
+    patterns: List[String]
+) derives ReadWriter
+
+final case class MatchList(matches: List[MatchListItem]) derives ReadWriter
+
 /** Cuerpo de error de los endpoints. */
 final case class ErrorBody(error: String) derives ReadWriter
